@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BukuKu</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: #1E2A44;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #1E2A44;
+            padding: 40px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar h2 {
+            margin-bottom: 60px;
+            font-size: 36px;
+            font-weight: 600;
+        }
+
+        .sidebar h2 span:nth-child(1) {
+            color: #fff;
+        }
+
+        .sidebar h2 span:nth-child(2) {
+            color: #3B82F6;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            color: #fff;
+            padding: 20px 25px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-size: 22px;
+            font-weight: 500;
+        }
+
+        .sidebar a:hover {
+            background: #3B82F6;
+        }
+
+        .sidebar a img {
+            width: 30px;
+            height: 30px;
+        }
+
+        .content {
+            margin-left: 350px;
+            padding: 40px;
+            flex: 1;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1E2A44;
+            padding: 20px 40px;
+            border-radius: 5px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: 600;
+        }
+
+        .header h1 span:nth-child(1) {
+            color: #fff;
+        }
+
+        .header h1 span:nth-child(2) {
+            color: #3B82F6;
+        }
+
+        .header .search-profile {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+
+        .header input {
+            padding: 12px 25px;
+            border-radius: 20px;
+            border: none;
+            background: #2A3B5A;
+            color: #fff;
+            font-size: 18px;
+            width: 250px;
+        }
+
+        .header input::placeholder {
+            color: #A0AEC0;
+        }
+
+        .header .profile {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: #2A3B5A;
+            padding: 10px 25px;
+            border-radius: 20px;
+        }
+
+        .header .profile img {
+            width: 36px;
+            height: 36px;
+        }
+
+        .header .profile span {
+            font-size: 20px;
+            font-weight: 500;
+        }
+
+        .trending {
+            margin-bottom: 50px;
+        }
+
+        .trending h2 {
+            margin-bottom: 25px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .trending-book {
+            background: #2A3B5A;
+            padding: 40px;
+            border-radius: 10px;
+            display: flex;
+            gap: 40px;
+            align-items: center;
+        }
+
+        .trending-book img {
+            width: 400px;
+            height: 600px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+
+        .trending-book .info {
+            flex: 1;
+        }
+
+        .trending-book .info h3 {
+            font-size: 36px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .trending-book .info p {
+            font-size: 20px;
+            color: #A0AEC0;
+        }
+
+        .trending-book .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 20px;
+            width: 200px;
+            white-space: nowrap;
+        }
+
+        .btn-add {
+            background: #22C55E;
+            color: #fff;
+        }
+
+        .btn-edit {
+            background: #3B82F6;
+            color: #fff;
+        }
+
+        .btn-delete {
+            background: #EF4444;
+            color: #fff;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section h2 {
+            margin-bottom: 25px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .book-grid, .user-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 40px;
+        }
+
+        .book-card {
+            background: #2A3B5A;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .book-card img {
+            width: 100%;
+            height: 375px;
+            max-width: 250px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .book-card h3 {
+            font-size: 22px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .book-card p {
+            font-size: 16px;
+            color: #A0AEC0;
+            margin-bottom: 10px;
+        }
+
+        .user-table, .loan-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #2A3B5A;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .user-table th, .user-table td,
+        .loan-table th, .loan-table td {
+            padding: 25px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 18px;
+        }
+
+        .user-table th, .loan-table th {
+            background: #3B82F6;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .user-table tr:hover, .loan-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .user-table td, .loan-table td {
+            color: #A0AEC0;
+        }
+
+        .user-actions, .loan-actions {
+            display: flex;
+            flex-direction: row;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .user-actions .btn-delete, .loan-actions .btn-delete {
+            width: 300px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #2A3B5A;
+            padding: 40px;
+            border-radius: 10px;
+            width: 600px;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 30px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .modal-content input, .modal-content button {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: none;
+            font-size: 18px;
+        }
+
+        .modal-content input {
+            background: #fff;
+            color: #1E2A44;
+        }
+
+        .modal-content button {
+            background: #22C55E;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .modal-content .close {
+            background: #EF4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2><span>Buku</span><span>Ku.</span></h2>
+        <a href="#books" onclick="showSection('books')">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/book.png" alt="Books Icon">
+            Books
+        </a>
+        <a href="#loan" onclick="showSection('loan')">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/borrow-book.png" alt="Loan Icon">
+            Loan
+        </a>
+        <a href="#users" onclick="showSection('users')">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/user.png" alt="Users Icon">
+            Users
+        </a>
+        <a href="#settings">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png" alt="Settings Icon">
+            Settings
+        </a>
+        <a href="#logout">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/logout-rounded.png" alt="Log out Icon">
+            Log out
+        </a>
+    </div>
+
+    <div class="content">
+        <div class="header">
+            <h1><span>Buku</span><span>Ku.</span></h1>
+            <div class="search-profile">
+                <input type="text" id="search" placeholder="Search...">
+                <div class="profile">
+                    <img src="https://img.icons8.com/ios-filled/50/ffffff/user-male-circle.png" alt="Profile Icon">
+                    <span>AdminBoard</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="books" class="section">
+            <div class="trending">
+                <h2>Trending Now</h2>
+                <div class="trending-book">
+                    <img id="trending-cover" src="https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg" alt="Trending Book">
+                    <div class="info">
+                        <h3 id="trending-title">Loading...</h3>
+                        <p id="trending-author">Loading...</p>
+                    </div>
+                    <div class="actions">
+                        <button class="btn btn-add" onclick="openModal('addBookModal')">Add Books</button>
+                        <button class="btn btn-edit" onclick="editBook()">Edit Books</button>
+                        <button class="btn btn-delete" onclick="deleteBook()">Delete Books</button>
+                    </div>
+                </div>
+            </div>
+            <div class="priority-books" style="margin-top: 50px;">
+                <h2>Priority Books (High Demand)</h2>
+                <div class="book-grid" id="priorityBookGrid"></div>
+            </div>
+
+            <h2>All Books</h2>
+            <div class="book-grid" id="bookGrid"></div>
+        </div>
+
+        <div id="loan" class="section" style="display: none;">
+            <h2>Loans</h2>
+            <div class="loan-actions">
+                <button class="btn btn-add" onclick="openModal('addLoanModal')">Add Loan</button>
+                <button class="btn btn-edit" onclick="editLoan()">Edit Loan</button>
+                <button class="btn btn-delete" onclick="deleteLoan()">Delete Loans</button>
+            </div>
+            <table class="loan-table" id="loanTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User ID</th>
+                        <th>Book ID</th>
+                        <th>Loan Date</th>
+                        <th>Return Date</th>
+                    </tr>
+                </thead>
+                <tbody id="loanTableBody"></tbody>
+            </table>
+        </div>
+
+        <div id="users" class="section" style="display: none;">
+            <h2>Users</h2>
+            <div class="user-actions">
+                <button class="btn btn-add" onclick="openModal('addUserModal')">Add Users</button>
+                <button class="btn btn-edit" onclick="editUser()">Edit Users</button>
+                <button class="btn btn-delete" onclick="deleteUser()">Delete Users</button>
+            </div>
+            <table class="user-table" id="userTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Loan History</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="addBookModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Book</h2>
+            <label>Title</label>
+            <input type="text" id="addBookTitle">
+            <label>Author</label>
+            <input type="text" id="addBookAuthor">
+            <label>ISBN</label>
+            <input type="text" id="addBookISBN">
+            <label>Total Copies</label>
+            <input type="number" id="addBookCopies" value="1">
+            <label>Cover URL</label>
+            <input type="text" id="addBookCoverURL" placeholder="https://example.com/book-cover.jpg">
+            <button onclick="addBook()">Add</button>
+            <button class="close" onclick="closeModal('addBookModal')">Close</button>
+        </div>
+    </div>
+
+    <div id="editBookModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Book</h2>
+            <label>Book ID</label>
+            <input type="number" id="editBookId" readonly>
+            <label>Title</label>
+            <input type="text" id="editBookTitle">
+            <label>Author</label>
+            <input type="text" id="editBookAuthor">
+            <label>ISBN</label>
+            <input type="text" id="editBookISBN">
+            <label>Total Copies</label>
+            <input type="number" id="editBookTotalCopies">
+            <label>Available Copies</label>
+            <input type="number" id="editBookCopies">
+            <label>Cover URL</label>
+            <input type="text" id="editBookCoverURL">
+            <button onclick="saveEditBook()">Save</button>
+            <button class="close" onclick="closeModal('editBookModal')">Close</button>
+        </div>
+    </div>
+
+    <div id="addLoanModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Loan</h2>
+            <label>User ID</label>
+            <input type="number" id="addLoanUserId">
+            <label>Book ID</label>
+            <input type="number" id="addLoanBookId">
+            <label>Loan Date</label>
+            <input type="date" id="addLoanDate">
+            <label>Return Date</label>
+            <input type="date" id="addLoanReturnDate">
+            <button onclick="addLoan()">Add</button>
+            <button class="close" onclick="closeModal('addLoanModal')">Close</button>
+        </div>
+    </div>
+
+    <div id="editLoanModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Loan</h2>
+            <label>Loan ID</label>
+            <input type="number" id="editLoanId" readonly>
+            <label>User ID</label>
+            <input type="number" id="editLoanUserId">
+            <label>Book ID</label>
+            <input type="number" id="editLoanBookId">
+            <label>Loan Date</label>
+            <input type="date" id="editLoanDate">
+            <label>Return Date</label>
+            <input type="date" id="editLoanReturnDate">
+            <button onclick="saveEditLoan()">Save</button>
+            <button class="close" onclick="closeModal('editLoanModal')">Close</button>
+        </div>
+    </div>
+
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <h2>Add User</h2>
+            <label>Name</label>
+            <input type="text" id="addUserName">
+            <label>Email</label>
+            <input type="email" id="addUserEmail">
+            <button onclick="addUser()">Add</button>
+            <button class="close" onclick="closeModal('addUserModal')">Close</button>
+        </div>
+    </div>
+
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit User</h2>
+            <label>User ID</label>
+            <input type="number" id="editUserId" readonly>
+            <label>Name</label>
+            <input type="text" id="editUserName">
+            <label>Email</label>
+            <input type="email" id="editUserEmail">
+            <button onclick="saveEditUser()">Edit</button>
+            <button class="close" onclick="closeModal('editUserModal')">Close</button>
+        </div>
+    </div>
+
+    <script>
+        let isFetchingBooks = false;
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => section.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+
+            if (sectionId === 'books' && !isFetchingBooks) {
+                fetchBooks();
+            }
+
+            if (sectionId === 'loan') fetchLoans();
+            if (sectionId === 'users') fetchUsers();
+        }
+
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'flex';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        async function fetchBooks(query = '') {
+            if (isFetchingBooks) return;
+            isFetchingBooks = true;
+
+            try {
+                console.log('Fetching books...');
+                const url = query ? `http://localhost:5000/books/search?q=${encodeURIComponent(query)}` : 'http://localhost:5000/books';
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Failed to fetch books');
+                let books = await response.json();
+
+                books.sort((a, b) => a.available_copies - b.available_copies);
+
+                const bookGrid = document.getElementById('bookGrid');
+                bookGrid.innerHTML = '';
+
+                books.forEach(book => {
+                    const bookCard = document.createElement('div');
+                    bookCard.className = 'book-card';
+                    bookCard.innerHTML = `
+                        <img src="${book.cover_url || 'https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg'}" alt="${book.title}" onerror="this.onerror=null; this.src='https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg';">
+                        <h3>${book.title}</h3>
+                        <p>${book.author}</p>
+                        <p>ISBN: ${book.isbn}</p>
+                        <p>Copies: ${book.available_copies}/${book.total_copies}</p>
+                    `;
+                    bookGrid.appendChild(bookCard);
+                });
+
+                if (books.length > 0) {
+                    document.getElementById('trending-title').textContent = books[0].title;
+                    document.getElementById('trending-author').textContent = books[0].author;
+                    document.getElementById('trending-cover').src = books[0].cover_url || 'https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg';
+                    document.getElementById('trending-cover').onerror = function() {
+                        this.onerror = null;
+                        this.src = 'https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg';
+                    };
+                } else {
+                    document.getElementById('trending-title').textContent = 'No books available';
+                    document.getElementById('trending-author').textContent = '';
+                    document.getElementById('trending-cover').src = 'https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg';
+                }
+            } catch (error) {
+                console.error('Error fetching books:', error);
+                alert('Failed to fetch books. Please check the backend server.');
+            } finally {
+                isFetchingBooks = false;
+            }
+        }
+
+       
+        document.getElementById('search').addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            fetchBooks(query);
+        });
+
+        async function addBook() {
+            const title = document.getElementById('addBookTitle').value;
+            const author = document.getElementById('addBookAuthor').value;
+            const isbn = document.getElementById('addBookISBN').value;
+            const totalCopies = parseInt(document.getElementById('addBookCopies').value);
+            const coverUrl = document.getElementById('addBookCoverURL').value;
+
+            try {
+                const response = await fetch('http://localhost:5000/books', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        author,
+                        isbn,
+                        total_copies: totalCopies,
+                        available_copies: totalCopies,
+                        cover_url: coverUrl
+                    })
+                });
+                if (!response.ok) throw new Error('Failed to add book');
+                closeModal('addBookModal');
+                fetchBooks();
+            } catch (error) {
+                console.error('Error adding book:', error);
+                alert('Failed to add book. Please check the backend server.');
+            }
+        }
+
+        async function editBook() {
+            const bookId = prompt("Enter the Book ID to edit:");
+            if (!bookId) return;
+
+            try {
+                const response = await fetch(`http://localhost:5000/books/${bookId}`);
+                if (!response.ok) throw new Error('Failed to fetch book');
+                const book = await response.json();
+
+                document.getElementById('editBookId').value = book.id;
+                document.getElementById('editBookTitle').value = book.title;
+                document.getElementById('editBookAuthor').value = book.author;
+                document.getElementById('editBookISBN').value = book.isbn;
+                document.getElementById('editBookTotalCopies').value = book.total_copies;
+                document.getElementById('editBookCopies').value = book.available_copies;
+                document.getElementById('editBookCoverURL').value = book.cover_url;
+
+                openModal('editBookModal');
+            } catch (error) {
+                console.error('Error fetching book:', error);
+                alert('Failed to fetch book. Please ensure the book ID is correct and the backend server is running.');
+            }
+        }
+
+        async function saveEditBook() {
+            const bookId = document.getElementById('editBookId').value;
+            const title = document.getElementById('editBookTitle').value;
+            const author = document.getElementById('editBookAuthor').value;
+            const isbn = document.getElementById('editBookISBN').value;
+            const totalCopies = parseInt(document.getElementById('editBookTotalCopies').value);
+            const availableCopies = parseInt(document.getElementById('editBookCopies').value);
+            const coverUrl = document.getElementById('editBookCoverURL').value;
+
+            try {
+                const response = await fetch(`http://localhost:5000/books/${bookId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title,
+                        author,
+                        isbn,
+                        total_copies: totalCopies,
+                        available_copies: availableCopies,
+                        cover_url: coverUrl
+                    })
+                });
+                if (!response.ok) throw new Error('Failed to update book');
+                closeModal('editBookModal');
+                fetchBooks();
+            } catch (error) {
+                console.error('Error updating book:', error);
+                alert('Failed to update book. Please check the backend server.');
+            }
+        }
+
+        async function deleteBook() {
+            const bookId = prompt("Enter the Book ID to delete:");
+            if (!bookId) return;
+
+            try {
+                const response = await fetch(`http://localhost:5000/books/${bookId}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) throw new Error('Failed to delete book');
+                fetchBooks();
+            } catch (error) {
+                console.error('Error deleting book:', error);
+                alert('Failed to delete book. Please check the backend server.');
+            }
+        }
+
+        async function fetchLoans() {
+            try {
+                console.log('Fetching loans from http://localhost:5001/loans...');
+                const response = await fetch('http://localhost:5001/loans');
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Failed to fetch loans: ${errorData.error || response.statusText}`);
+                }
+                const loans = await response.json();
+                console.log('Fetched loans:', loans);
+
+                const loanTableBody = document.getElementById('loanTableBody');
+                loanTableBody.innerHTML = '';
+
+                if (loans.length === 0) {
+                    loanTableBody.innerHTML = '<tr><td colspan="5">No loans found.</td></tr>';
+                    return;
+                }
+
+                loans.forEach(loan => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${loan.id || 'N/A'}</td>
+                        <td>${loan.user_id || 'N/A'}</td>
+                        <td>${loan.book_id || 'N/A'}</td>
+                        <td>${loan.loan_date || 'N/A'}</td>
+                        <td>${loan.return_date || 'Not returned'}</td>
+                    `;
+                    loanTableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching loans:', error.message);
+                alert(`Failed to fetch loans. Please check the backend server. Error: ${error.message}`);
+            }
+        }
+
+        async function addLoan() {
+            const userId = document.getElementById('addLoanUserId').value;
+            const bookId = document.getElementById('addLoanBookId').value;
+            const loanDate = document.getElementById('addLoanDate').value;
+            const returnDate = document.getElementById('addLoanReturnDate').value || null;
+
+            if (!loanDate) {
+                alert('Please enter a Loan Date.');
+                return;
+            }
+
+            try {
+                console.log('Sending POST request to add loan:', { user_id: userId, book_id: bookId, loan_date: loanDate, return_date: returnDate });
+                const response = await fetch('http://localhost:5001/loans', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId, book_id: bookId, loan_date: loanDate, return_date: returnDate })
+                });
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Failed to add loan: ${errorData.error || response.statusText}`);
+                }
+                closeModal('addLoanModal');
+                alert('Loan added successfully');
+                fetchLoans();
+                fetchBooks(); // Refresh daftar buku untuk memperbarui available_copies
+                fetchUsers(); // Refresh daftar user untuk memperbarui loan history
+            } catch (error) {
+                console.error('Error adding loan:', error.message);
+                alert(`Failed to add loan. Error: ${error.message}`);
+            }
+        }
+
+        async function editLoan() {
+            const loanId = prompt("Enter the Loan ID to edit:");
+            if (!loanId) return;
+
+            try {
+                console.log(`Fetching loan with ID: ${loanId}`);
+                const response = await fetch(`http://localhost:5001/loans/${loanId}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Failed to fetch loan: ${errorData.error || response.statusText}`);
+                }
+                const loan = await response.json();
+
+                document.getElementById('editLoanId').value = loan.id;
+                document.getElementById('editLoanUserId').value = loan.user_id;
+                document.getElementById('editLoanBookId').value = loan.book_id;
+                document.getElementById('editLoanDate').value = loan.loan_date ? loan.loan_date.split('T')[0] : '';
+                document.getElementById('editLoanReturnDate').value = loan.return_date ? loan.return_date.split('T')[0] : '';
+
+                openModal('editLoanModal');
+            } catch (error) {
+                console.error('Error fetching loan for edit:', error.message);
+                alert(`Failed to fetch loan for editing. Error: ${error.message}`);
+            }
+        }
+
+        async function saveEditLoan() {
+            const loanId = document.getElementById('editLoanId').value;
+            const userId = document.getElementById('editLoanUserId').value;
+            const bookId = document.getElementById('editLoanBookId').value;
+            const loanDate = document.getElementById('editLoanDate').value;
+            const returnDate = document.getElementById('editLoanReturnDate').value || null;
+
+            try {
+                console.log(`Saving changes for loan ID: ${loanId}`);
+                const response = await fetch(`http://localhost:5001/loans/${loanId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: userId,
+                        book_id: bookId,
+                        loan_date: loanDate,
+                        return_date: returnDate
+                    })
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Failed to update loan: ${errorData.error || response.statusText}`);
+                }
+                closeModal('editLoanModal');
+                alert('Loan updated successfully');
+                fetchLoans();
+                fetchUsers(); // Refresh daftar user untuk memperbarui loan history
+            } catch (error) {
+                console.error('Error updating loan:', error.message);
+                alert(`Failed to update loan. Error: ${error.message}`);
+            }
+        }
+
+        async function deleteLoan() {
+            const loanId = prompt("Enter the Loan ID to delete:");
+            if (!loanId) return;
+
+            try {
+                console.log(`Deleting loan with ID: ${loanId}`);
+                const response = await fetch(`http://localhost:5001/loans/${loanId}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Failed to delete loan: ${errorData.error || response.statusText}`);
+                }
+                alert('Loan deleted successfully');
+                fetchLoans();
+                fetchBooks(); // Refresh daftar buku untuk memperbarui available_copies
+                fetchUsers(); // Refresh daftar user untuk memperbarui loan history
+            } catch (error) {
+                console.error('Error deleting loan:', error.message);
+                alert(`Failed to delete loan. Error: ${error.message}`);
+            }
+        }
+
+        async function fetchUsers() {
+            try {
+                console.log('Fetching users from http://localhost:5002/users...');
+                const response = await fetch('http://localhost:5002/users');
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Failed to fetch users: ${errorData.error || response.statusText}`);
+                }
+                const users = await response.json();
+                console.log('Fetched users:', users);
+
+                const userTableBody = document.getElementById('userTableBody');
+                userTableBody.innerHTML = '';
+
+                if (users.length === 0) {
+                    userTableBody.innerHTML = '<tr><td colspan="4">No users found.</td></tr>';
+                    return;
+                }
+
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${user.id || 'N/A'}</td>
+                        <td>${user.name || 'N/A'}</td>
+                        <td>${user.email || 'N/A'}</td>
+                        <td>${user.loan_history || 0} loans</td>
+                    `;
+                    userTableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching users:', error.message);
+                alert(`Failed to fetch users. Please check the backend server. Error: ${error.message}`);
+            }
+        }
+
+        async function addUser() {
+            const name = document.getElementById('addUserName').value;
+            const email = document.getElementById('addUserEmail').value;
+
+            try {
+                console.log('Sending POST request to add user:', { name, email });
+                const response = await fetch('http://localhost:5002/users', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email })
+                });
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Failed to add user: ${errorData.error || response.statusText}`);
+                }
+                closeModal('addUserModal');
+                fetchUsers();
+            } catch (error) {
+                console.error('Error adding user:', error.message);
+                alert(`Failed to add user. Please check the backend server. Error: ${error.message}`);
+            }
+        }
+
+        async function editUser() {
+            const userId = prompt("Enter the User ID to edit:");
+            if (!userId) return;
+
+            try {
+                console.log(`Fetching user with ID: ${userId}`);
+                const response = await fetch(`http://localhost:5002/users/${userId}`);
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Failed to fetch user: ${errorData.error || response.statusText}`);
+                }
+                const user = await response.json();
+
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editUserName').value = user.name;
+                document.getElementById('editUserEmail').value = user.email;
+
+                openModal('editUserModal');
+            } catch (error) {
+                console.error('Error fetching user for edit:', error.message);
+                alert(`Failed to fetch user for editing. Error: ${error.message}`);
+            }
+        }
+
+        async function saveEditUser() {
+            const userId = document.getElementById('editUserId').value;
+            const name = document.getElementById('editUserName').value;
+            const email = document.getElementById('editUserEmail').value;
+
+            try {
+                console.log(`Saving changes for user ID: ${userId}`);
+                const response = await fetch(`http://localhost:5002/users/${userId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email })
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Failed to update user: ${errorData.error || response.statusText}`);
+                }
+                closeModal('editUserModal');
+                alert('User updated successfully');
+                fetchUsers();
+            } catch (error) {
+                console.error('Error updating user:', error.message);
+                alert(`Failed to update user. Error: ${error.message}`);
+            }
+        }
+
+        async function deleteUser() {
+            const userId = prompt("Enter the User ID to delete:");
+            if (!userId) return;
+
+            try {
+                console.log(`Deleting user with ID: ${userId}`);
+                const response = await fetch(`http://localhost:5002/users/${userId}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Failed to delete user: ${errorData.error || response.statusText}`);
+                }
+                alert('User deleted successfully');
+                fetchUsers();
+            } catch (error) {
+                console.error('Error deleting user:', error.message);
+                alert(`Failed to delete user. Error: ${error.message}`);
+            }
+        }
+                // Fungsi untuk mengambil dan menampilkan buku prioritas
+        async function fetchPriorityBooks() {
+            try {
+                const response = await fetch('http://localhost:5003/priority-books');
+                if (!response.ok) throw new Error('Failed to fetch priority books');
+                const priorityBooks = await response.json();
+
+                const priorityBookGrid = document.getElementById('priorityBookGrid');
+                priorityBookGrid.innerHTML = '';
+
+                if (priorityBooks.length === 0) {
+                    priorityBookGrid.innerHTML = '<p>No books with high priority at the moment.</p>';
+                    return;
+                }
+
+                priorityBooks.forEach(book => {
+                    const bookCard = document.createElement('div');
+                    bookCard.className = 'book-card';
+                    bookCard.innerHTML = `
+                        <h3>${book.title}</h3>
+                        <p>${book.author}</p>
+                        <p>Copies: ${book.available_copies}/${book.total_copies}</p>
+                        <p>Priority Score: ${book.priority_score}</p>
+                        <p style="color: ${book.priority_score >= 50 ? '#EF4444' : '#FBBF24'}">${book.message}</p>
+                    `;
+                    priorityBookGrid.appendChild(bookCard);
+                });
+            } catch (error) {
+                console.error('Error fetching priority books:', error);
+                alert('Failed to fetch priority books. Please check the AI service.');
+            }
+        }
+
+        // Panggil fetchPriorityBooks saat section "books" ditampilkan
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => section.style.display = 'none');
+            document.getElementById(sectionId).style.display = 'block';
+
+            if (sectionId === 'books' && !isFetchingBooks) {
+                fetchBooks();
+                fetchPriorityBooks(); // Tambahkan panggilan ke fetchPriorityBooks
+            }
+
+            if (sectionId === 'loan') fetchLoans();
+            if (sectionId === 'users') fetchUsers();
+        }
+
+        // Load books section by default
+        showSection('books');
+    </script>
+</body>
+</html>
