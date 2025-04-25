@@ -186,5 +186,20 @@ def get_loans_by_user(user_id):
         app.logger.error(f"Error fetching loans for user ID {user_id}: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/loans-total', methods=['GET'])
+def get_all_loans_total():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT * FROM loans_total")
+        loans_total = cursor.fetchall()
+        cursor.close()
+        conn.close()
+        app.logger.info(f"Fetched {len(loans_total)} records from loans_total table")
+        return jsonify(loans_total), 200
+    except Exception as e:
+        app.logger.error(f"Error fetching loans_total data: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=Config.LOAN_SERVICE_PORT)
