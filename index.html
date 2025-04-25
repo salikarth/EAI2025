@@ -590,6 +590,26 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- ASK AI Section -->
+            <div class="section-predict" style="padding: 25px; background: #1E2A44; border-radius: 10px;">
+                <h2>Ask AI</h2>
+                <div class="ai-form">
+                    <label for="aiPrompt">Ask a question about the prediction data:</label>
+                    <div style="display: flex; margin-top: 10px; margin-bottom: 20px;">
+                        <input type="text" id="aiPrompt" style="flex: 1; padding: 10px; border-radius: 5px; border: none;" 
+                               placeholder="e.g., Which model performs best for peak season?">
+                        <button class="btn btn-add" style="margin-left: 10px;" onclick="askAI()">Ask AI</button>
+                    </div>
+                </div>
+                <div id="aiResponseContainer" style="display: none; background: #111827; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                    <h3 style="margin-top: 0; color: #4CAF50;">AI Response:</h3>
+                    <div id="aiResponseText" style="white-space: pre-wrap; line-height: 1.5;"></div>
+                </div>
+                <div id="aiLoading" style="display: none; text-align: center; margin-top: 20px;">
+                    <p>Analyzing data, please wait...</p>
+                </div>
+            </div>
         </div>
     </div>
 

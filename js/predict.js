@@ -263,3 +263,54 @@ async function fetchModelErrors() {
         alert('Failed to fetch model error metrics. Please check the backend server.');
     }
 }
+
+// Fungsi untuk mengirim prompt ke AI dan mendapatkan analisis
+async function askAI() {
+    try {
+        const aiPrompt = document.getElementById('aiPrompt').value.trim();
+        
+        if (!aiPrompt) {
+            alert('Please enter a question for the AI');
+            return;
+        }
+        
+        // Tampilkan loading indicator
+        document.getElementById('aiLoading').style.display = 'block';
+        document.getElementById('aiResponseContainer').style.display = 'none';
+        
+        console.log('Sending AI analysis request with prompt:', aiPrompt);
+        
+        const response = await fetch('http://localhost:5004/predict-analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ prompt: aiPrompt })
+        });
+        
+        console.log('Response status:', response.status);
+        
+        if (!response.ok) throw new Error('Failed to get AI analysis');
+        
+        const responseData = await response.json();
+        console.log('AI analysis received:', responseData);
+        
+        // Sembunyikan loading indicator
+        document.getElementById('aiLoading').style.display = 'none';
+        
+        if (responseData.success && responseData.data && responseData.data.analysis) {
+            // Tampilkan hasil analisis
+            const aiResponseContainer = document.getElementById('aiResponseContainer');
+            const aiResponseText = document.getElementById('aiResponseText');
+            
+            aiResponseText.textContent = responseData.data.analysis;
+            aiResponseContainer.style.display = 'block';
+        } else {
+            throw new Error('Invalid response format');
+        }
+    } catch (error) {
+        // Sembunyikan loading indicator
+        document.getElementById('aiLoading').style.display = 'none';
+        
+        console.error('Error getting AI analysis:', error);
+        alert('Failed to get AI analysis. Please try again.');
+    }
+}

@@ -20,4 +20,7 @@ class Config:
     AI_SERVICE_PORT = os.getenv("AI_SERVICE_PORT", 5003)
     PREDICT_SERVICE_PORT = os.getenv("PREDICT_SERVICE_PORT", 5004)
     
+    GEMINI_API_KEY="AIzaSyAImlRgNLbrArrYlcS87EgEI_vr2D88HmA"
+    
+
     URL = os.getenv("URL", 'http://localhost')

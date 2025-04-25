@@ -13,6 +13,9 @@ from flask_cors import CORS
 import mysql.connector
 from dotenv import load_dotenv
 import requests  
+import google.generativeai as genai
+from google.api_core.exceptions import GoogleAPIError
+import json
 
 # prediction_service/extract_predictions.py
 import sys
@@ -165,6 +168,186 @@ def get_all_loans_total():
             return jsonify({"success": True, "data": loans_total}), 200
         else:
             return jsonify({"success": False, "message": "Failed to fetch loans data"}), response.status_code
+            
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/predict-all', methods=['GET'])
+def predict_all():
+    """
+    Endpoint to predict borrowing for all models (1-4) on April 31, 2025
+    with different season combinations
+    """
+    try:
+        # Set target date to April 31, 2025
+        target_date = datetime(2025, 4, 30)  # Note: April only has 30 days
+        
+        results = {}
+        
+        # Define season combinations to test
+        season_combinations = [
+            {"name": "peak_only", "is_peak": 1, "is_low": 0},
+            {"name": "low_only", "is_peak": 0, "is_low": 1},
+            {"name": "no_season", "is_peak": 0, "is_low": 0}
+        ]
+        
+        # Loop through all models (1-4)
+        for model_no in range(1, 5):
+            model_results = {}
+            
+            # Test each season combination
+            for combo in season_combinations:
+                try:
+                    result = predict_future_borrowing(
+                        model_no, 
+                        target_date, 
+                        combo["is_peak"], 
+                        combo["is_low"]
+                    )
+                    
+                    if result.get("success", False):
+                        model_results[combo["name"]] = result["prediction"]
+                    else:
+                        model_results[combo["name"]] = f"Error: {result.get('error', 'Unknown error')}"
+                except Exception as e:
+                    model_results[combo["name"]] = f"Error: {str(e)}"
+            
+            results[f"model_{model_no}"] = model_results
+        
+        return jsonify({
+            "success": True, 
+            "data": {
+                "target_date": target_date.strftime('%Y-%m-%d'),
+                "predictions": results
+            }
+        }), 200
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/predict-analyze', methods=['POST'])
+def predict_analyze():
+    """
+    Endpoint to predict borrowing for all models, send the data to Gemini API
+    along with a user prompt, and return Gemini's analysis
+    
+    Expected JSON body:
+    {
+        "prompt": "Analyze this prediction data and tell me which model performs best"
+    }
+    """
+    try:
+        # Get user prompt from request
+        data = request.get_json()
+        if not data or 'prompt' not in data:
+            return jsonify({"success": False, "message": "Missing 'prompt' in request body"}), 400
+            
+        user_prompt = data['prompt']
+        
+        # First, get all prediction data
+        # Set target date to April 30, 2025
+        target_date = datetime(2025, 4, 30)
+        
+        results = {}
+        
+        # Define season combinations to test
+        season_combinations = [
+            {"name": "peak_only", "is_peak": 1, "is_low": 0},
+            {"name": "low_only", "is_peak": 0, "is_low": 1},
+            {"name": "no_season", "is_peak": 0, "is_low": 0}
+        ]
+        
+        # Loop through all models (1-4)
+        for model_no in range(1, 5):
+            model_results = {}
+            
+            # Test each season combination
+            for combo in season_combinations:
+                try:
+                    result = predict_future_borrowing(
+                        model_no, 
+                        target_date, 
+                        combo["is_peak"], 
+                        combo["is_low"]
+                    )
+                    
+                    if result.get("success", False):
+                        model_results[combo["name"]] = result["prediction"]
+                    else:
+                        model_results[combo["name"]] = f"Error: {result.get('error', 'Unknown error')}"
+                except Exception as e:
+                    model_results[combo["name"]] = f"Error: {str(e)}"
+            
+            results[f"model_{model_no}"] = model_results
+        
+        prediction_data = {
+            "target_date": target_date.strftime('%Y-%m-%d'),
+            "predictions": results
+        }
+        
+        # Get model error metrics
+        error_metrics = {}
+        for model_no in range(1, 5):
+            try:
+                # Load the saved model
+                model_path = os.path.join(os.path.dirname(__file__), f'prediction_service/sarima_model_{model_no}.pkl')
+                
+                with open(model_path, 'rb') as pkl:
+                    loaded_model = pickle.load(pkl)
+                
+                # Extract metrics from the model
+                model_metrics = {
+                    'mse': loaded_model.get('mse', 'N/A'),
+                    'rmse': loaded_model.get('rmse', 'N/A'),
+                    'mae': loaded_model.get('mae', 'N/A'),
+                    'r2_score': loaded_model.get('r2_score', 'N/A')
+                }
+                
+                error_metrics[f'model_{model_no}'] = model_metrics
+                
+            except Exception as e:
+                error_metrics[f'model_{model_no}'] = {'error': str(e)}
+        
+        # Configure Gemini API
+        try:
+            api_key = Config.GEMINI_API_KEY
+            if not api_key:
+                return jsonify({"success": False, "message": "GEMINI_API_KEY not found in environment variables"}), 500
+                
+            genai.configure(api_key=api_key)
+            
+            # Create model instance - menggunakan gemini-1.5-flash alih-alih gemini-pro
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            
+            # Prepare prompt for Gemini
+            full_prompt = f"""
+            User prompt: {user_prompt}
+            
+            Prediction data for book borrowing on {prediction_data['target_date']}:
+            
+            {json.dumps(prediction_data['predictions'], indent=2)}
+            
+            Model error metrics:
+            
+            {json.dumps(error_metrics, indent=2)}
+            
+            Please analyze this data and provide insights in a paragraph and not points.
+            """
+            
+            # Generate response from Gemini
+            response = model.generate_content(full_prompt)
+            
+            # Return both prediction data and Gemini's analysis
+            return jsonify({
+                "success": True,
+                "data": {
+                    "predictions": prediction_data,
+                    "error_metrics": error_metrics,
+                    "analysis": response.text
+                }
+            }), 200
+            
+        except GoogleAPIError as e:
+            return jsonify({"success": False, "message": f"Gemini API error: {str(e)}"}), 500
             
     except Exception as e:
         return jsonify({"success": False, "message": str(e)}), 500
