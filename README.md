@@ -371,3 +371,201 @@ Ambil semua peminjaman berdasarkan ID user.
 - **Response 500**: `{ "error": "Error message" }`
 
 ---
+
+# 📖 PredictService API Documentation
+
+PredictService adalah bagian dari sistem manajemen perpustakaan yang melakukan prediksi jumlah peminjaman buku menggunakan data historis peminjaman buku.
+
+---
+
+Default port: `5004`
+
+---
+
+## 📂 Daftar Endpoint
+
+### `GET /predict/<int:model_no>`
+Memprediksi jumlah peminjaman untuk bulan tertentu.
+- **Response 200**:
+```json
+    "data": {
+        "prediction": 5
+    },
+    "success": true
+}
+```
+- **Response 400**: `{"success": False, "message": result.get("error", "Unknown error"}`
+- **Response 500**: `{"success": False, "message": str(e)}`
+
+---
+
+### `GET /evaluate`
+Mendapatkan nilai error untuk masing-masing model, penilaian model menggunakan MAE, MSE, R² SCORE, dan RMSE.
+- **Response 200**:
+```json
+    {
+    "data": {
+        "model_1": {
+            "mae": 0.45746131719608274,
+            "mse": 0.68751443399021,
+            "r2_score": 0.8721626584230917,
+            "rmse": 0.829164901566757
+        },
+        "model_2": {
+            "mae": 0.48320135411098675,
+            "mse": 0.6700247413457315,
+            "r2_score": 0.8752316807557716,
+            "rmse": 0.8185503902300283
+        },
+        "model_3": {
+            "mae": 0.4313456130538823,
+            "mse": 0.5411683946130689,
+            "r2_score": 0.906165398061277,
+            "rmse": 0.7356414851087919
+        },
+        "model_4": {
+            "mae": 0.8216825988766604,
+            "mse": 1.4909382708322145,
+            "r2_score": 0.6751121619003155,
+            "rmse": 1.2210398317959223
+        }
+    },
+    "success": true
+}
+```
+- **Response 500**: `{"success": False, "message": str(e)}`
+
+---
+
+### `GET /loans-total-data`
+Merupakan route yang berkomunikasi langsung sebagai consumer dengan LoanService untuk mengakses data jumlah peminjaman dari bulan Januari 2022 hingga Maret 2025
+- **Response 200**:
+```json
+{
+    "data": [
+        {
+            "book_id": 1,
+            "borrowed_count": 5,
+            "date": "Mon, 31 Jan 2022 00:00:00 GMT",
+            "is_low_season": 0,
+            "is_peak_season": 0
+        },
+        {
+            "book_id": 1,
+            "borrowed_count": 8,
+            "date": "Mon, 28 Feb 2022 00:00:00 GMT",
+            "is_low_season": 0,
+            "is_peak_season": 1
+        },
+        ... (seluruh data sampai "book_id = 6")
+    ],
+    "success": true
+}
+```
+- **Response 500**: `{"success": False, "message": str(e)}`
+
+---
+
+### `GET /predict_all`
+Prediksi jumlah peminjaman pada bulan berikutnya menggunakan model ML 
+- **Response 200**:
+```json
+{
+    "data": {
+        "predictions": {
+            "model_1": {
+                "low_only": 5,
+                "no_season": 5,
+                "peak_only": 5
+            },
+            "model_2": {
+                "low_only": 5,
+                "no_season": 5,
+                "peak_only": 5
+            },
+            "model_3": {
+                "low_only": 8,
+                "no_season": 8,
+                "peak_only": 8
+            },
+            "model_4": {
+                "low_only": 10,
+                "no_season": 10,
+                "peak_only": 10
+            }
+        },
+        "target_date": "2025-04-30"
+    },
+    "success": true
+}
+```
+- **Response 500**: `{"success": False, "message": str(e)}`
+
+---
+
+### `POST /predict_analyze`
+Mendapatkan hasil analisis AI terkait hasil prediksi ML 
+- **Response 200**:
+```json
+{
+    "data": {
+        "analysis": "Data prediksi peminjaman buku pada 30 April 2025 menunjukkan variasi hasil antar model.  Model 3 dan Model 2 memiliki error terendah (MSE dan RMSE terkecil, R-squared tertinggi), menunjukkan akurasi prediksi yang lebih baik dibandingkan model lainnya.  Meskipun Model 4 memprediksi jumlah peminjaman tertinggi (10 untuk semua skenario), metrik error-nya jauh lebih tinggi, mengindikasikan prediksi yang kurang akurat.  Semua model memprediksi jumlah peminjaman yang serupa antar skenario (\"peak_only\", \"low_only\", \"no_season\"), menyiratkan bahwa model-model ini mungkin belum cukup menangkap pengaruh musiman atau faktor lain yang memengaruhi peminjaman buku.  Secara keseluruhan, Model 3 tampak sebagai model terbaik berdasarkan metrik error yang diberikan, walaupun diperlukan analisis lebih lanjut untuk memastikan keandalan prediksinya.\n",
+        "error_metrics": {
+            "model_1": {
+                "mae": 0.45746131719608274,
+                "mse": 0.68751443399021,
+                "r2_score": 0.8721626584230917,
+                "rmse": 0.829164901566757
+            },
+            "model_2": {
+                "mae": 0.48320135411098675,
+                "mse": 0.6700247413457315,
+                "r2_score": 0.8752316807557716,
+                "rmse": 0.8185503902300283
+            },
+            "model_3": {
+                "mae": 0.4313456130538823,
+                "mse": 0.5411683946130689,
+                "r2_score": 0.906165398061277,
+                "rmse": 0.7356414851087919
+            },
+            "model_4": {
+                "mae": 0.8216825988766604,
+                "mse": 1.4909382708322145,
+                "r2_score": 0.6751121619003155,
+                "rmse": 1.2210398317959223
+            }
+        },
+        "predictions": {
+            "predictions": {
+                "model_1": {
+                    "low_only": 5,
+                    "no_season": 5,
+                    "peak_only": 5
+                },
+                "model_2": {
+                    "low_only": 5,
+                    "no_season": 5,
+                    "peak_only": 5
+                },
+                "model_3": {
+                    "low_only": 8,
+                    "no_season": 8,
+                    "peak_only": 8
+                },
+                "model_4": {
+                    "low_only": 10,
+                    "no_season": 10,
+                    "peak_only": 10
+                }
+            },
+            "target_date": "2025-04-30"
+        }
+    },
+    "success": true
+}
+```
+- **Response 500**: `{"success": False, "message": str(e)}`
+
+
+
