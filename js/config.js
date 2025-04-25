@@ -1,0 +1,9 @@
+window.env = {
+  URL: "http://localhost",
+  BOOK_SERVICE_PORT: 5000,
+  LOAN_SERVICE_PORT: 5001,
+  USER_SERVICE_PORT: 5002,
+  PREDICT_SERVICE_PORT: 5003,
+};
+
+

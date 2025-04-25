@@ -1,13 +1,13 @@
 async function fetchLoanData() {
     try {
-        const response = await fetch('http://localhost:5004/loans-total-data');
+        const response = await fetch(`${window.env.URL}:${window.env.PREDICT_SERVICE_PORT}/loans-total-data`);
         if (!response.ok) throw new Error('Failed to fetch loan data');
         const data = await response.json();
         console.log('Received data:', data); // Log the received data
-        
+
         const loanDataTableBody = document.getElementById('loanDataTableBody');
         loanDataTableBody.innerHTML = '';
-        
+
         // Check if data has the expected structure
         if (data && data.data && Array.isArray(data.data)) {
             // Update table header to include book_id column
@@ -19,10 +19,10 @@ async function fetchLoanData() {
                     <th>Total Loans</th>
                 `;
             }
-            
+
             // Store the data globally for pagination
             window.loanData = data.data;
-            
+
             // Create pagination controls if more than 10 items
             if (data.data.length > 10) {
                 createPagination(data.data.length, 'loanPagination', displayLoanPage);
@@ -32,7 +32,7 @@ async function fetchLoanData() {
                 if (paginationContainer) {
                     paginationContainer.innerHTML = '';
                 }
-                
+
                 // Display all data if 10 or fewer items
                 displayLoanData(data.data, 0, 10);
             }
@@ -57,14 +57,14 @@ function displayLoanPage(page) {
 function displayLoanData(data, startIndex, endIndex) {
     const loanDataTableBody = document.getElementById('loanDataTableBody');
     loanDataTableBody.innerHTML = '';
-    
+
     const pageData = data.slice(startIndex, endIndex);
-    
+
     if (pageData.length === 0) {
         loanDataTableBody.innerHTML = '<tr><td colspan="3">No data available for this page</td></tr>';
         return;
     }
-    
+
     pageData.forEach(entry => {
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -79,7 +79,7 @@ function displayLoanData(data, startIndex, endIndex) {
 // Function to create pagination controls
 function createPagination(totalItems, containerId, callback) {
     const totalPages = Math.ceil(totalItems / 10);
-    
+
     // Create pagination container if it doesn't exist
     let paginationContainer = document.getElementById(containerId);
     if (!paginationContainer) {
@@ -90,61 +90,61 @@ function createPagination(totalItems, containerId, callback) {
         paginationContainer.className = 'pagination';
         tableContainer.appendChild(paginationContainer);
     }
-    
+
     // Function to update pagination UI
     function updatePaginationUI(currentPage) {
         paginationContainer.innerHTML = '';
-        
+
         // Previous button
         const prevButton = document.createElement('button');
         prevButton.textContent = 'Previous';
         prevButton.className = 'pagination-btn';
-        prevButton.onclick = function() {
+        prevButton.onclick = function () {
             if (currentPage > 1) {
                 changePage(currentPage - 1);
             }
         };
         paginationContainer.appendChild(prevButton);
-        
+
         // Calculate which page buttons to show (always show 5 if possible)
         let startPage = Math.max(1, currentPage - 2);
         let endPage = Math.min(totalPages, startPage + 4);
-        
+
         // Adjust start page if we're near the end
         if (endPage - startPage < 4 && totalPages > 5) {
             startPage = Math.max(1, endPage - 4);
         }
-        
+
         // Page buttons
         for (let i = startPage; i <= endPage; i++) {
             const pageButton = document.createElement('button');
             pageButton.textContent = i;
             pageButton.className = 'pagination-btn' + (i === currentPage ? ' active' : '');
-            pageButton.onclick = function() {
+            pageButton.onclick = function () {
                 changePage(i);
             };
             paginationContainer.appendChild(pageButton);
         }
-        
+
         // Next button
         const nextButton = document.createElement('button');
         nextButton.textContent = 'Next';
         nextButton.className = 'pagination-btn';
-        nextButton.onclick = function() {
+        nextButton.onclick = function () {
             if (currentPage < totalPages) {
                 changePage(currentPage + 1);
             }
         };
         paginationContainer.appendChild(nextButton);
     }
-    
+
     // Function to change page
     function changePage(page) {
         paginationContainer.setAttribute('data-current-page', page);
         updatePaginationUI(page);
         callback(page);
     }
-    
+
     // Initialize with page 1
     paginationContainer.setAttribute('data-current-page', 1);
     updatePaginationUI(1);
@@ -172,19 +172,19 @@ async function fetchPrediction() {
             is_peak_season: isPeakSeason,
             is_low_season: isLowSeason
         });
-        
-        const url = `http://localhost:5004/predict/${modelNo}?${queryParams.toString()}`;
+
+        const url = `${window.env.URL}:${window.env.PREDICT_SERVICE_PORT}/predict/${modelNo}?${queryParams.toString()}`;
         console.log('Request URL:', url);
-        
+
         const response = await fetch(url, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });
-        
+
         console.log('Response status:', response.status);
-        
+
         if (!response.ok) throw new Error('Failed to fetch prediction');
-        
+
         const responseData = await response.json();
         console.log('Prediction data received:', responseData);
 
@@ -210,30 +210,30 @@ async function fetchPrediction() {
 async function fetchModelErrors() {
     try {
         console.log('Fetching model error metrics...');
-        
-        const response = await fetch('http://localhost:5004/evaluate', {
+
+        const response = await fetch(`${window.env.URL}:${window.env.PREDICT_SERVICE_PORT}/evaluate`, {
             method: 'GET',
             headers: { 'Content-Type': 'application/json' }
         });
-        
+
         console.log('Response status:', response.status);
-        
+
         if (!response.ok) throw new Error('Failed to fetch model error metrics');
-        
+
         const responseData = await response.json();
         console.log('Model error metrics received:', responseData);
 
         if (responseData.success && responseData.data) {
             const errorTableBody = document.getElementById('errorTableBody');
             errorTableBody.innerHTML = '';
-            
+
             // Loop through each model's metrics
             for (const [modelKey, metrics] of Object.entries(responseData.data)) {
                 const row = document.createElement('tr');
-                
+
                 // Extract model number from the key (e.g., "model_1" -> "1")
                 const modelNumber = modelKey.split('_')[1];
-                
+
                 // Check if there's an error for this model
                 if (metrics.error) {
                     row.innerHTML = `
@@ -243,7 +243,7 @@ async function fetchModelErrors() {
                 } else {
                     // Menggunakan r2_score jika tersedia, jika tidak gunakan r2 sebagai fallback
                     const r2Value = metrics.r2_score !== undefined ? metrics.r2_score : metrics.r2;
-                    
+
                     row.innerHTML = `
                         <td>Model ${modelNumber}</td>
                         <td>${typeof metrics.mse === 'number' ? metrics.mse.toFixed(4) : metrics.mse}</td>
@@ -252,7 +252,7 @@ async function fetchModelErrors() {
                         <td>${typeof r2Value === 'number' ? r2Value.toFixed(4) : r2Value}</td>
                     `;
                 }
-                
+
                 errorTableBody.appendChild(row);
             }
         } else {
@@ -268,39 +268,39 @@ async function fetchModelErrors() {
 async function askAI() {
     try {
         const aiPrompt = document.getElementById('aiPrompt').value.trim();
-        
+
         if (!aiPrompt) {
             alert('Please enter a question for the AI');
             return;
         }
-        
+
         // Tampilkan loading indicator
         document.getElementById('aiLoading').style.display = 'block';
         document.getElementById('aiResponseContainer').style.display = 'none';
-        
+
         console.log('Sending AI analysis request with prompt:', aiPrompt);
-        
-        const response = await fetch('http://localhost:5004/predict-analyze', {
+
+        const response = await fetch(`${window.env.URL}:${window.env.PREDICT_SERVICE_PORT}/predict-analyze`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: aiPrompt })
         });
-        
+
         console.log('Response status:', response.status);
-        
+
         if (!response.ok) throw new Error('Failed to get AI analysis');
-        
+
         const responseData = await response.json();
         console.log('AI analysis received:', responseData);
-        
+
         // Sembunyikan loading indicator
         document.getElementById('aiLoading').style.display = 'none';
-        
+
         if (responseData.success && responseData.data && responseData.data.analysis) {
             // Tampilkan hasil analisis
             const aiResponseContainer = document.getElementById('aiResponseContainer');
             const aiResponseText = document.getElementById('aiResponseText');
-            
+
             aiResponseText.textContent = responseData.data.analysis;
             aiResponseContainer.style.display = 'block';
         } else {
@@ -309,7 +309,7 @@ async function askAI() {
     } catch (error) {
         // Sembunyikan loading indicator
         document.getElementById('aiLoading').style.display = 'none';
-        
+
         console.error('Error getting AI analysis:', error);
         alert('Failed to get AI analysis. Please try again.');
     }

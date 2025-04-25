@@ -4,7 +4,7 @@
 
 1. **Install dependensi:**
 ```bash
-pip install flask flask-cors mysql-connector-python python-dotenv
+pip install flask flask-cors mysql-connector-python python-dotenv google.generativeai
 ```
 
 2. **Buat file `.env`** dan isi dengan konfigurasi database:
@@ -17,22 +17,37 @@ MYSQL_PORT=3308
 BOOK_SERVICE_PORT=5000
 LOAN_SERVICE_PORT=5001
 USER_SERVICE_PORT=5002
-AI_SERVICE_PORT=5003
+PREDICT_SERVICE_PORT=5003
 
 MYSQL_DB_BOOK=book_management_uts_db 
 MYSQL_DB_LOAN=loan_management_uts_db 
 MYSQL_DB_USER=user_management_uts_db
 
 URL=http://localhost
+
+GEMINI_API_KEY=YOUR_GEMINI_KEY
 ```
 
-3. **Jalankan service (masing-masing beda terminal):**
+**Sesuaikan juga konfigurasi pada file `js/config.js`**
+```javascript
+window.env = {
+  URL: "http://localhost",
+  BOOK_SERVICE_PORT: 5000,
+  LOAN_SERVICE_PORT: 5001,
+  USER_SERVICE_PORT: 5002,
+  PREDICT_SERVICE_PORT: 5003,
+};
+```
+
+3. **Import file `database_setup.sql` ke database**
+
+4. **Jalankan service (masing-masing beda terminal):**
 ```bash
 python -m http.server 8000
 py book_service.py
 py user_service.py
 py loan_service.py
-py ai_service.py
+py predict_service.py
 ```
 
 # API Documentation
@@ -378,7 +393,7 @@ PredictService adalah bagian dari sistem manajemen perpustakaan yang melakukan p
 
 ---
 
-Default port: `5004`
+Default port: `5003`
 
 ---
 

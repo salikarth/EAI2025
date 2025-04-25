@@ -1,416 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BukuKu</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        body {
-            background: #1E2A44;
-            color: #fff;
-            min-height: 100vh;
-            display: flex;
-        }
-
-        .sidebar {
-            width: 350px;
-            background: #1E2A44;
-            padding: 40px;
-            height: 100vh;
-            position: fixed;
-            top: 0;
-            left: 0;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .sidebar h2 {
-            margin-bottom: 60px;
-            font-size: 36px;
-            font-weight: 600;
-        }
-
-        .sidebar h2 span:nth-child(1) {
-            color: #fff;
-        }
-
-        .sidebar h2 span:nth-child(2) {
-            color: #3B82F6;
-        }
-
-        .sidebar a {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            color: #fff;
-            padding: 20px 25px;
-            text-decoration: none;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            font-size: 22px;
-            font-weight: 500;
-        }
-
-        .sidebar a:hover {
-            background: #3B82F6;
-        }
-
-        .sidebar a img {
-            width: 30px;
-            height: 30px;
-        }
-
-        .content {
-            margin-left: 350px;
-            padding: 40px;
-            flex: 1;
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #1E2A44;
-            padding: 20px 40px;
-            border-radius: 5px;
-            margin-bottom: 40px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .header h1 {
-            font-size: 36px;
-            font-weight: 600;
-        }
-
-        .header h1 span:nth-child(1) {
-            color: #fff;
-        }
-
-        .header h1 span:nth-child(2) {
-            color: #3B82F6;
-        }
-
-        .header .search-profile {
-            display: flex;
-            align-items: center;
-            gap: 25px;
-        }
-
-        .header input {
-            padding: 12px 25px;
-            border-radius: 20px;
-            border: none;
-            background: #2A3B5A;
-            color: #fff;
-            font-size: 18px;
-            width: 250px;
-        }
-
-        .header input::placeholder {
-            color: #A0AEC0;
-        }
-
-        .header .profile {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            background: #2A3B5A;
-            padding: 10px 25px;
-            border-radius: 20px;
-        }
-
-        .header .profile img {
-            width: 36px;
-            height: 36px;
-        }
-
-        .header .profile span {
-            font-size: 20px;
-            font-weight: 500;
-        }
-
-        .trending {
-            margin-bottom: 50px;
-        }
-
-        .trending h2 {
-            margin-bottom: 25px;
-            font-size: 28px;
-            font-weight: 600;
-        }
-
-        .trending-book {
-            background: #2A3B5A;
-            padding: 40px;
-            border-radius: 10px;
-            display: flex;
-            gap: 40px;
-            align-items: center;
-        }
-
-        .trending-book img {
-            width: 400px;
-            height: 600px;
-            object-fit: cover;
-            border-radius: 5px;
-        }
-
-        .trending-book .info {
-            flex: 1;
-        }
-
-        .trending-book .info h3 {
-            font-size: 36px;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-
-        .trending-book .info p {
-            font-size: 20px;
-            color: #A0AEC0;
-        }
-
-        .trending-book .actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            align-items: flex-end;
-        }
-
-        .btn {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: 500;
-            font-size: 20px;
-            width: 200px;
-            white-space: nowrap;
-        }
-
-        .btn-add {
-            background: #22C55E;
-            color: #fff;
-        }
-
-        .btn-edit {
-            background: #3B82F6;
-            color: #fff;
-        }
-
-        .btn-delete {
-            background: #EF4444;
-            color: #fff;
-        }
-
-        .section {
-            margin-bottom: 50px;
-        }
-
-        .section h2 {
-            margin-bottom: 25px;
-            font-size: 28px;
-            font-weight: 600;
-        }
-
-        .book-grid, .user-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 40px;
-        }
-
-        .book-card {
-            background: #2A3B5A;
-            padding: 25px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .book-card img {
-            width: 100%;
-            height: 375px;
-            max-width: 250px;
-            object-fit: cover;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-
-        .book-card h3 {
-            font-size: 22px;
-            font-weight: 500;
-            margin-bottom: 10px;
-        }
-
-        .book-card p {
-            font-size: 16px;
-            color: #A0AEC0;
-            margin-bottom: 10px;
-        }
-
-        .user-table, .loan-table, .predict-table, .error-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: #2A3B5A;
-            border-radius: 10px;
-            overflow: hidden;
-        }
-
-        .user-table th, .user-table td,
-        .loan-table th, .loan-table td,
-        .predict-table th, .predict-table td,
-        .error-table th, .error-table td {
-            padding: 25px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 18px;
-        }
-
-        .user-table th, .loan-table th, .predict-table th, .error-table th {
-            background: #3B82F6;
-            color: #fff;
-            font-weight: 600;
-        }
-
-        .user-table tr:hover, .loan-table tr:hover, .predict-table tr:hover, .error-table tr:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .user-table td, .loan-table td, .predict-table td, .error-table td {
-            color: #A0AEC0;
-        }
-
-        .user-actions, .loan-actions, .predict-actions {
-            display: flex;
-            flex-direction: row;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .user-actions .btn-delete, .loan-actions .btn-delete {
-            width: 300px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-content {
-            background: #2A3B5A;
-            padding: 40px;
-            border-radius: 10px;
-            width: 600px;
-        }
-
-        .modal-content h2 {
-            margin-bottom: 30px;
-            font-size: 28px;
-            font-weight: 600;
-        }
-
-        .modal-content label {
-            display: block;
-            margin-bottom: 10px;
-            font-size: 18px;
-            font-weight: 500;
-        }
-
-        .modal-content input, .modal-content button {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-            border: none;
-            font-size: 18px;
-        }
-
-        .modal-content input {
-            background: #fff;
-            color: #1E2A44;
-        }
-
-        .modal-content button {
-            background: #22C55E;
-            color: #fff;
-            cursor: pointer;
-        }
-
-        .modal-content .close {
-            background: #EF4444;
-        }
-
-        /* Additional styles for Predict section */
-        .predict-form {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .predict-form label {
-            font-size: 18px;
-            font-weight: 500;
-        }
-
-        .predict-form input[type="date"],
-        .predict-form input[type="number"] {
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-            background: #fff;
-            color: #1E2A44;
-            font-size: 16px;
-        }
-
-        .predict-form input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-        }
-
-        .predict-actions .btn {
-            width: 250px;
-        }
-
-        .pagination {
-    display: flex;
-    justify-content: center;
-    margin-top: 15px;
-    gap: 5px;
-    }
-
-    .pagination-btn {
-        padding: 5px 10px;
-        border: 1px solid #ccc;
-        background-color: #f8f9fa;
-        cursor: pointer;
-        border-radius: 3px;
-    }
-
-    .pagination-btn:hover {
-        background-color: #e9ecef;
-    }
-
-    .pagination-btn.active {
-        background-color: #0d6efd;
-        color: white;
-        border-color: #0d6efd;
-    }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <div class="sidebar">
         <h2><span>Buku</span><span>Ku.</span></h2>
@@ -456,7 +54,9 @@
             <div class="trending">
                 <h2>Trending Now</h2>
                 <div class="trending-book">
-                    <img id="trending-cover" src="https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg" alt="Trending Book">
+                    <img id="trending-cover"
+                        src="https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg"
+                        alt="Trending Book">
                     <div class="info">
                         <h3 id="trending-title">Loading...</h3>
                         <p id="trending-author">Loading...</p>
@@ -468,11 +68,6 @@
                     </div>
                 </div>
             </div>
-            <div class="priority-books" style="margin-top: 50px;">
-                <h2>Priority Books (High Demand)</h2>
-                <div class="book-grid" id="priorityBookGrid"></div>
-            </div>
-
             <h2>All Books</h2>
             <div class="book-grid" id="bookGrid"></div>
         </div>
@@ -520,9 +115,10 @@
 
         <div id="predict" class="section" style="display: none;">
             <h2>Prediction Dashboard</h2>
-            
+
             <!-- Loan Data Table Section -->
-            <div class="section-predict" style="margin-bottom: 50px; padding: 25px; background: #1E2A44; border-radius: 10px;">
+            <div class="section-predict"
+                style="margin-bottom: 50px; padding: 25px; background: #1E2A44; border-radius: 10px;">
                 <h2>Loan Data</h2>
                 <div class="predict-actions">
                     <button class="btn btn-add" onclick="fetchLoanData()">See Loan Data</button>
@@ -541,7 +137,8 @@
             </div>
 
             <!-- Prediction Data Table Section -->
-            <div class="section-predict" style="margin-bottom: 50px; padding: 25px; background: #1E2A44; border-radius: 10px;">
+            <div class="section-predict"
+                style="margin-bottom: 50px; padding: 25px; background: #1E2A44; border-radius: 10px;">
                 <h2>Prediction Results</h2>
                 <div class="predict-form">
                     <label for="predictDate">Date:</label>
@@ -597,12 +194,14 @@
                 <div class="ai-form">
                     <label for="aiPrompt">Ask a question about the prediction data:</label>
                     <div style="display: flex; margin-top: 10px; margin-bottom: 20px;">
-                        <input type="text" id="aiPrompt" style="flex: 1; padding: 10px; border-radius: 5px; border: none;" 
-                               placeholder="e.g., Which model performs best for peak season?">
+                        <input type="text" id="aiPrompt"
+                            style="flex: 1; padding: 10px; border-radius: 5px; border: none;"
+                            placeholder="e.g., Which model performs best for peak season?">
                         <button class="btn btn-add" style="margin-left: 10px;" onclick="askAI()">Ask AI</button>
                     </div>
                 </div>
-                <div id="aiResponseContainer" style="display: none; background: #111827; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                <div id="aiResponseContainer"
+                    style="display: none; background: #111827; padding: 15px; border-radius: 5px; margin-top: 10px;">
                     <h3 style="margin-top: 0; color: #4CAF50;">AI Response:</h3>
                     <div id="aiResponseText" style="white-space: pre-wrap; line-height: 1.5;"></div>
                 </div>
@@ -714,6 +313,7 @@
         </div>
     </div>
 
+    <script src="js/config.js"></script>
     <script src="js/predict.js"></script>
     <script>
         let isFetchingBooks = false;
@@ -724,7 +324,6 @@
 
             if (sectionId === 'books' && !isFetchingBooks) {
                 fetchBooks();
-                fetchPriorityBooks();
             }
 
             if (sectionId === 'loan') fetchLoans();
@@ -751,7 +350,7 @@
 
             try {
                 console.log('Fetching books...');
-                const url = query ? `http://localhost:5000/books/search?q=${encodeURIComponent(query)}` : 'http://localhost:5000/books';
+                const url = query ? `${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/books/search?q=${encodeURIComponent(query)}` : `${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/books`;
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Failed to fetch books');
                 let books = await response.json();
@@ -778,7 +377,7 @@
                     document.getElementById('trending-title').textContent = books[0].title;
                     document.getElementById('trending-author').textContent = books[0].author;
                     document.getElementById('trending-cover').src = books[0].cover_url || 'https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg';
-                    document.getElementById('trending-cover').onerror = function() {
+                    document.getElementById('trending-cover').onerror = function () {
                         this.onerror = null;
                         this.src = 'https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg';
                     };
@@ -795,7 +394,7 @@
             }
         }
 
-        document.getElementById('search').addEventListener('input', function(e) {
+        document.getElementById('search').addEventListener('input', function (e) {
             const query = e.target.value.trim();
             fetchBooks(query);
         });
@@ -808,7 +407,7 @@
             const coverUrl = document.getElementById('addBookCoverURL').value;
 
             try {
-                const response = await fetch('http://localhost:5000/books', {
+                const response = await fetch(`${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/books`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -834,7 +433,7 @@
             if (!bookId) return;
 
             try {
-                const response = await fetch(`http://localhost:5000/books/${bookId}`);
+                const response = await fetch(`${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/books/${bookId}`);
                 if (!response.ok) throw new Error('Failed to fetch book');
                 const book = await response.json();
 
@@ -863,7 +462,7 @@
             const coverUrl = document.getElementById('editBookCoverURL').value;
 
             try {
-                const response = await fetch(`http://localhost:5000/books/${bookId}`, {
+                const response = await fetch(`${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/books/${bookId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -889,7 +488,7 @@
             if (!bookId) return;
 
             try {
-                const response = await fetch(`http://localhost:5000/books/${bookId}`, {
+                const response = await fetch(`${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/books/${bookId}`, {
                     method: 'DELETE'
                 });
                 if (!response.ok) throw new Error('Failed to delete book');
@@ -902,8 +501,8 @@
 
         async function fetchLoans() {
             try {
-                console.log('Fetching loans from http://localhost:5001/loans...');
-                const response = await fetch('http://localhost:5001/loans');
+                console.log(`Fetching loans from ${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/loans...`);
+                const response = await fetch(`${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/loans`);
                 console.log('Response status:', response.status);
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -950,7 +549,7 @@
 
             try {
                 console.log('Sending POST request to add loan:', { user_id: userId, book_id: bookId, loan_date: loanDate, return_date: returnDate });
-                const response = await fetch('http://localhost:5001/loans', {
+                const response = await fetch(`${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/loans`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ user_id: userId, book_id: bookId, loan_date: loanDate, return_date: returnDate })
@@ -977,7 +576,7 @@
 
             try {
                 console.log(`Fetching loan with ID: ${loanId}`);
-                const response = await fetch(`http://localhost:5001/loans/${loanId}`);
+                const response = await fetch(`${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/loans/${loanId}`);
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(`Failed to fetch loan: ${errorData.error || response.statusText}`);
@@ -1006,7 +605,7 @@
 
             try {
                 console.log(`Saving changes for loan ID: ${loanId}`);
-                const response = await fetch(`http://localhost:5001/loans/${loanId}`, {
+                const response = await fetch(`${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/loans/${loanId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -1036,7 +635,7 @@
 
             try {
                 console.log(`Deleting loan with ID: ${loanId}`);
-                const response = await fetch(`http://localhost:5001/loans/${loanId}`, {
+                const response = await fetch(`${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/loans/${loanId}`, {
                     method: 'DELETE'
                 });
                 if (!response.ok) {
@@ -1055,8 +654,8 @@
 
         async function fetchUsers() {
             try {
-                console.log('Fetching users from http://localhost:5002/users...');
-                const response = await fetch('http://localhost:5002/users');
+                console.log(`Fetching users from ${window.env.URL}:${window.env.USER_SERVICE_PORT}/users...`);
+                const response = await fetch(`${window.env.URL}:${window.env.USER_SERVICE_PORT}/users`);
                 console.log('Response status:', response.status);
                 if (!response.ok) {
                     const errorData = await response.json();
@@ -1095,7 +694,7 @@
 
             try {
                 console.log('Sending POST request to add user:', { name, email });
-                const response = await fetch('http://localhost:5002/users', {
+                const response = await fetch(`${window.env.URL}:${window.env.USER_SERVICE_PORT}/users`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email })
@@ -1119,7 +718,7 @@
 
             try {
                 console.log(`Fetching user with ID: ${userId}`);
-                const response = await fetch(`http://localhost:5002/users/${userId}`);
+                const response = await fetch(`${window.env.URL}:${window.env.USER_SERVICE_PORT}/users/${userId}`);
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(`Failed to fetch user: ${errorData.error || response.statusText}`);
@@ -1144,7 +743,7 @@
 
             try {
                 console.log(`Saving changes for user ID: ${userId}`);
-                const response = await fetch(`http://localhost:5002/users/${userId}`, {
+                const response = await fetch(`${window.env.URL}:${window.env.USER_SERVICE_PORT}/users/${userId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name, email })
@@ -1168,7 +767,7 @@
 
             try {
                 console.log(`Deleting user with ID: ${userId}`);
-                const response = await fetch(`http://localhost:5002/users/${userId}`, {
+                const response = await fetch(`${window.env.URL}:${window.env.USER_SERVICE_PORT}/users/${userId}`, {
                     method: 'DELETE'
                 });
                 if (!response.ok) {
@@ -1183,42 +782,10 @@
             }
         }
 
-        // Fungsi untuk mengambil dan menampilkan buku prioritas
-        async function fetchPriorityBooks() {
-            try {
-                const response = await fetch('http://localhost:5003/priority-books');
-                if (!response.ok) throw new Error('Failed to fetch priority books');
-                const priorityBooks = await response.json();
-
-                const priorityBookGrid = document.getElementById('priorityBookGrid');
-                priorityBookGrid.innerHTML = '';
-
-                if (priorityBooks.length === 0) {
-                    priorityBookGrid.innerHTML = '<p>No books with high priority at the moment.</p>';
-                    return;
-                }
-
-                priorityBooks.forEach(book => {
-                    const bookCard = document.createElement('div');
-                    bookCard.className = 'book-card';
-                    bookCard.innerHTML = `
-                        <h3>${book.title}</h3>
-                        <p>${book.author}</p>
-                        <p>Copies: ${book.available_copies}/${book.total_copies}</p>
-                        <p>Priority Score: ${book.priority_score}</p>
-                        <p style="color: ${book.priority_score >= 50 ? '#EF4444' : '#FBBF24'}">${book.message}</p>
-                    `;
-                    priorityBookGrid.appendChild(bookCard);
-                });
-            } catch (error) {
-                console.error('Error fetching priority books:', error);
-                alert('Failed to fetch priority books. Please check the AI service.');
-            }
-        }
-
         // Load books section by default
         showSection('books');
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'93580b73df4bb051',t:'MTc0NTUyMzMzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+    <script>(function () { function c() { var b = a.contentDocument || a.contentWindow.document; if (b) { var d = b.createElement('script'); d.innerHTML = "window.__CF$cv$params={r:'93580b73df4bb051',t:'MTc0NTUyMzMzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);"; b.getElementsByTagName('head')[0].appendChild(d) } } if (document.body) { var a = document.createElement('iframe'); a.height = 1; a.width = 1; a.style.position = 'absolute'; a.style.top = 0; a.style.left = 0; a.style.border = 'none'; a.style.visibility = 'hidden'; document.body.appendChild(a); if ('loading' !== document.readyState) c(); else if (window.addEventListener) document.addEventListener('DOMContentLoaded', c); else { var e = document.onreadystatechange || function () { }; document.onreadystatechange = function (b) { e(b); 'loading' !== document.readyState && (document.onreadystatechange = e, c()) } } } })();</script>
 </body>
+
 </html>
