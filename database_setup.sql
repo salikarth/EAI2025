@@ -27,8 +27,17 @@ CREATE TABLE IF NOT EXISTS loans (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     book_id INT NOT NULL,
-    loan_date DATETIME NOT NULL
+    loan_date DATETIME NOT NULL,
     return_date DATETIME NOT NULL
+);
+
+-- Insert sample loan
+CREATE TABLE IF NOT EXISTS loans_total (
+    book_id INT NOT NULL,
+    date DATE NOT NULL,
+    borrowed_count INT NOT NULL,
+    is_peak_season INT NOT NULL,
+    is_low_season INT NOT NULL
 );
 
 -- Create database for users
