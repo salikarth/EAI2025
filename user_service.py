@@ -1,4 +1,6 @@
-from flask import Flask, request, jsonify
+from flask import Flask
+from graphene import ObjectType, Int, String, List, Schema, Field, Argument
+from flask_graphql import GraphQLView
 from flask_cors import CORS
 import mysql.connector
 from dotenv import load_dotenv
@@ -6,7 +8,6 @@ import requests
 from config import Config
 
 load_dotenv()
-
 app = Flask(__name__)
 CORS(app)
 
@@ -19,135 +20,55 @@ def get_db_connection():
             database=Config.MYSQL_DB_USER,
             port=Config.MYSQL_PORT,
         )
-        app.logger.info("Database connection successful")
         return connection
     except mysql.connector.Error as err:
-        app.logger.error(f"Database connection failed: {err}")
         raise Exception(f"Database connection failed: {err}")
 
-@app.route('/users', methods=['GET'])
-def get_users():
-    try:
+class User(ObjectType):
+    id = Int()
+    name = String()
+    email = String()
+    loan_history = Int()
+
+class UserQuery(ObjectType):
+    users = List(User, id=Argument(Int, required=False))
+    def resolve_users(self, info, id=None):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, name, email FROM users")
+        query = "SELECT id, name, email FROM users"
+        params = []
+        if id:
+            query += " WHERE id = %s"
+            params.append(id)
+        cursor.execute(query, params)
         users = cursor.fetchall()
         cursor.close()
         conn.close()
-
-        # Ambil jumlah loan untuk setiap user dari loan_service
         for user in users:
-            loan_response = requests.get(f'{Config.URL}:{Config.LOAN_SERVICE_PORT}/loans/user/{user["id"]}')
+            loan_response = requests.get(f'{Config.URL}:{Config.LOAN_SERVICE_PORT}/graphql', json={
+                'query': f'query {{ loans(userId: {user["id"]}) {{ id }} }}'
+            })
             if loan_response.status_code == 200:
-                loans = loan_response.json()
-                user['loan_history'] = len(loans)  # Jumlah loan untuk user ini
+                loans = loan_response.json()['data']['loans']
+                user['loan_history'] = len(loans)
             else:
                 user['loan_history'] = 0
+        return [User(id=u['id'], name=u['name'], email=u['email'], loan_history=u['loan_history']) for u in users]
 
-        app.logger.info(f"Fetched {len(users)} users")
-        return jsonify(users), 200
-    except Exception as e:
-        app.logger.error(f"Error fetching users: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/users/<int:user_id>', methods=['GET'])
-def get_user(user_id):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, name, email FROM users WHERE id = %s", (user_id,))
-        user = cursor.fetchone()
-        cursor.close()
-        conn.close()
-
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-
-        # Ambil jumlah loan untuk user ini
-        loan_response = requests.get(f'{Config.URL}:{Config.LOAN_SERVICE_PORT}/loans/user/{user_id}')
-        if loan_response.status_code == 200:
-            loans = loan_response.json()
-            user['loan_history'] = len(loans)
-        else:
-            user['loan_history'] = 0
-
-        app.logger.info(f"Fetched user with ID: {user_id}")
-        return jsonify(user), 200
-    except Exception as e:
-        app.logger.error(f"Error fetching user with ID {user_id}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/users', methods=['POST'])
-def create_user():
-    try:
-        data = request.get_json()
-        name = data['name']
-        email = data['email']
-
+class UserMutation(ObjectType):
+    create_user = Field(User, name=String(required=True), email=String(required=True))
+    def resolve_create_user(self, info, name, email):
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("""
-            INSERT INTO users (name, email)
-            VALUES (%s, %s)
-        """, (name, email))
+        cursor.execute("INSERT INTO users (name, email) VALUES (%s, %s)", (name, email))
         conn.commit()
         user_id = cursor.lastrowid
         cursor.close()
         conn.close()
+        return User(id=user_id, name=name, email=email, loan_history=0)
 
-        app.logger.info(f"User created successfully with ID: {user_id}")
-        return jsonify({"message": "User created successfully", "user_id": user_id}), 201
-    except Exception as e:
-        app.logger.error(f"Error creating user: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/users/<int:user_id>', methods=['PUT'])
-def update_user(user_id):
-    try:
-        data = request.get_json()
-        name = data['name']
-        email = data['email']
-
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("""
-            UPDATE users
-            SET name = %s, email = %s
-            WHERE id = %s
-        """, (name, email, user_id))
-        conn.commit()
-        affected_rows = cursor.rowcount
-        cursor.close()
-        conn.close()
-
-        if affected_rows == 0:
-            return jsonify({"error": "User not found"}), 404
-
-        app.logger.info(f"User updated successfully with ID: {user_id}")
-        return jsonify({"message": "User updated successfully"}), 200
-    except Exception as e:
-        app.logger.error(f"Error updating user with ID {user_id}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/users/<int:user_id>', methods=['DELETE'])
-def delete_user(user_id):
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
-        conn.commit()
-        affected_rows = cursor.rowcount
-        cursor.close()
-        conn.close()
-
-        if affected_rows == 0:
-            return jsonify({"error": "User not found"}), 404
-
-        app.logger.info(f"User deleted successfully with ID: {user_id}")
-        return jsonify({"message": "User deleted successfully"}), 200
-    except Exception as e:
-        app.logger.error(f"Error deleting user with ID {user_id}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+schema = Schema(query=UserQuery, mutation=UserMutation)
+app.add_url_rule('/graphql', view_func=GraphQLView.as_view('graphql', schema=schema, graphiql=True))
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=Config.USER_SERVICE_PORT)
