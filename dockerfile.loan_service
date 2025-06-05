@@ -17,4 +17,4 @@ COPY requirements.txt .
 EXPOSE 5001
 
 # Jalankan book_service
-CMD ["python", "book_service.py"]
+CMD ["python", "loan_service.py"]

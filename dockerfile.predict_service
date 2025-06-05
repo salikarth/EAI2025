@@ -18,4 +18,4 @@ COPY prediction_service/ prediction_service/
 EXPOSE 5003
 
 # Jalankan book_service
-CMD ["python", "book_service.py"]
+CMD ["python", "predict_service.py"]

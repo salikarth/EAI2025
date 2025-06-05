@@ -1,6 +1,6 @@
 from flask import Flask
-from graphene import ObjectType, String, Int, List, Schema, Field, Argument
 from flask_graphql import GraphQLView
+from graphene import ObjectType, String, Int, List, Schema, Field, Argument
 from flask_cors import CORS
 import mysql.connector
 from dotenv import load_dotenv

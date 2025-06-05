@@ -3,9 +3,9 @@ import pickle
 from datetime import datetime
 import numpy as np
 from sklearn.preprocessing import StandardScaler
+from flask_graphql import GraphQLView
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 from flask import Flask, request, jsonify
-from flask_graphql import GraphQLView
 from graphene import ObjectType, Int, String, Float, List, Schema, Field, Argument, Boolean
 from flask_cors import CORS
 from dotenv import load_dotenv
