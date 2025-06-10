@@ -12,6 +12,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY loan_service.py .
 COPY config.py .
 COPY requirements.txt .
+COPY .env .
+
 
 # Ekspos port untuk book_service
 EXPOSE 5001

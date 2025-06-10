@@ -12,6 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY book_service.py .
 COPY config.py .
 COPY requirements.txt .
+COPY .env .
 
 # Ekspos port untuk book_service
 EXPOSE 5000

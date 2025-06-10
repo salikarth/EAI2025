@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS loans (
 
 -- Insert sample loan
 CREATE TABLE IF NOT EXISTS loans_total (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     book_id INT NOT NULL,
     date DATE NOT NULL,
     borrowed_count INT NOT NULL,
@@ -54,3 +55,11 @@ CREATE TABLE IF NOT EXISTS users (
 -- Insert sample user
 INSERT INTO users (name, email) VALUES
 ('John Doe', 'john.doe@example.com');
+
+-- Create user if not exists and grant permissions
+CREATE USER IF NOT EXISTS 'user'@'%' IDENTIFIED BY 'password';
+
+-- Grant permissions to user for all databases
+GRANT ALL PRIVILEGES ON user_management_uts_db.* TO 'user'@'%';
+GRANT ALL PRIVILEGES ON book_management_uts_db.* TO 'user'@'%';
+GRANT ALL PRIVILEGES ON loan_management_uts_db.* TO 'user'@'%';

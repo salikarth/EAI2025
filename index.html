@@ -127,13 +127,13 @@
                     <thead>
                         <tr>
                             <th>Month</th>
+                            <th>Book ID</th>
                             <th>Total Loans</th>
                         </tr>
                     </thead>
-                    <tbody id="loanDataTableBody">
-                        <!-- Initially empty -->
-                    </tbody>
+                    <tbody id="loanDataTableBody"></tbody>
                 </table>
+                <div id="loanPagination" class="pagination"></div>
             </div>
 
             <!-- Prediction Data Table Section -->
@@ -160,9 +160,7 @@
                             <th>Amount</th>
                         </tr>
                     </thead>
-                    <tbody id="predictTableBody">
-                        <!-- Initially empty -->
-                    </tbody>
+                    <tbody id="predictTableBody"></tbody>
                 </table>
             </div>
 
@@ -182,9 +180,7 @@
                             <th>R² Score</th>
                         </tr>
                     </thead>
-                    <tbody id="errorTableBody">
-                        <!-- Initially empty -->
-                    </tbody>
+                    <tbody id="errorTableBody"></tbody>
                 </table>
             </div>
 
@@ -314,8 +310,16 @@
     </div>
 
     <script src="js/config.js"></script>
-    <script src="js/predict.js"></script>
     <script>
+        // Fallback for window.env
+        window.env = window.env || {
+            URL: 'http://localhost',
+            PREDICT_SERVICE_PORT: '5003',
+            BOOK_SERVICE_PORT: '5000',
+            LOAN_SERVICE_PORT: '5001',
+            USER_SERVICE_PORT: '5002'
+        };
+
         let isFetchingBooks = false;
 
         function showSection(sectionId) {
@@ -350,12 +354,42 @@
 
             try {
                 console.log('Fetching books...');
-                const url = query ? `${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/books/search?q=${encodeURIComponent(query)}` : `${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/books`;
-                const response = await fetch(url);
+                const url = `${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/graphql`;
+                const queryStr = query ? `
+                    query {
+                        searchBooks(q: "${encodeURIComponent(query)}") {
+                            id
+                            title
+                            author
+                            isbn
+                            totalCopies
+                            availableCopies
+                            coverUrl
+                        }
+                    }
+                ` : `
+                    query {
+                        books {
+                            id
+                            title
+                            author
+                            isbn
+                            totalCopies
+                            availableCopies
+                            coverUrl
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query: queryStr })
+                });
                 if (!response.ok) throw new Error('Failed to fetch books');
-                let books = await response.json();
+                const data = await response.json();
+                let books = query ? data.data.searchBooks : data.data.books;
 
-                books.sort((a, b) => a.available_copies - b.available_copies);
+                books.sort((a, b) => a.availableCopies - b.availableCopies);
 
                 const bookGrid = document.getElementById('bookGrid');
                 bookGrid.innerHTML = '';
@@ -364,11 +398,11 @@
                     const bookCard = document.createElement('div');
                     bookCard.className = 'book-card';
                     bookCard.innerHTML = `
-                        <img src="${book.cover_url || 'https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg'}" alt="${book.title}" onerror="this.onerror=null; this.src='https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg';">
+                        <img src="${book.coverUrl || 'https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg'}" alt="${book.title}" onerror="this.onerror=null; this.src='https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg';">
                         <h3>${book.title}</h3>
                         <p>${book.author}</p>
                         <p>ISBN: ${book.isbn}</p>
-                        <p>Copies: ${book.available_copies}/${book.total_copies}</p>
+                        <p>Copies: ${book.availableCopies}/${book.totalCopies}</p>
                     `;
                     bookGrid.appendChild(bookCard);
                 });
@@ -376,7 +410,7 @@
                 if (books.length > 0) {
                     document.getElementById('trending-title').textContent = books[0].title;
                     document.getElementById('trending-author').textContent = books[0].author;
-                    document.getElementById('trending-cover').src = books[0].cover_url || 'https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg';
+                    document.getElementById('trending-cover').src = books[0].coverUrl || 'https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg';
                     document.getElementById('trending-cover').onerror = function () {
                         this.onerror = null;
                         this.src = 'https://images-na.ssl-images-amazon.com/images/I/51MVRpCHiRL._SX331_BO1,204,203,200_.jpg';
@@ -407,17 +441,24 @@
             const coverUrl = document.getElementById('addBookCoverURL').value;
 
             try {
-                const response = await fetch(`${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/books`, {
+                const url = `${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/graphql`;
+                const query = `
+                    mutation {
+                        createBook(title: "${title}", author: "${author}", isbn: "${isbn}", totalCopies: ${totalCopies}, availableCopies: ${totalCopies}, coverUrl: "${coverUrl}") {
+                            id
+                            title
+                            author
+                            isbn
+                            totalCopies
+                            availableCopies
+                            coverUrl
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title,
-                        author,
-                        isbn,
-                        total_copies: totalCopies,
-                        available_copies: totalCopies,
-                        cover_url: coverUrl
-                    })
+                    body: JSON.stringify({ query })
                 });
                 if (!response.ok) throw new Error('Failed to add book');
                 closeModal('addBookModal');
@@ -433,17 +474,37 @@
             if (!bookId) return;
 
             try {
-                const response = await fetch(`${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/books/${bookId}`);
+                const url = `${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/graphql`;
+                const query = `
+                    query {
+                        book(id: ${bookId}) {
+                            id
+                            title
+                            author
+                            isbn
+                            totalCopies
+                            availableCopies
+                            coverUrl
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { GettableType: 'application/json' },
+                    body: JSON.stringify({ query })
+                });
                 if (!response.ok) throw new Error('Failed to fetch book');
-                const book = await response.json();
+                const data = await response.json();
+                if (!data.data.book) throw new Error('Book not found');
+                const book = data.data.book;
 
                 document.getElementById('editBookId').value = book.id;
-                document.getElementById('editBookTitle').value = book.title;
-                document.getElementById('editBookAuthor').value = book.author;
-                document.getElementById('editBookISBN').value = book.isbn;
-                document.getElementById('editBookTotalCopies').value = book.total_copies;
-                document.getElementById('editBookCopies').value = book.available_copies;
-                document.getElementById('editBookCoverURL').value = book.cover_url;
+                document.getElementById('editBookTitle').value = book.title || '';
+                document.getElementById('editBookAuthor').value = book.author || '';
+                document.getElementById('editBookISBN').value = book.isbn || '';
+                document.getElementById('editBookTotalCopies').value = book.totalCopies || 0;
+                document.getElementById('editBookCopies').value = book.availableCopies || 0;
+                document.getElementById('editBookCoverURL').value = book.coverUrl || '';
 
                 openModal('editBookModal');
             } catch (error) {
@@ -457,29 +518,58 @@
             const title = document.getElementById('editBookTitle').value;
             const author = document.getElementById('editBookAuthor').value;
             const isbn = document.getElementById('editBookISBN').value;
-            const totalCopies = parseInt(document.getElementById('editBookTotalCopies').value);
-            const availableCopies = parseInt(document.getElementById('editBookCopies').value);
+            const totalCopies = parseInt(document.getElementById('editBookTotalCopies').value) || 0;
+            const availableCopies = parseInt(document.getElementById('editBookCopies').value) || 0;
             const coverUrl = document.getElementById('editBookCoverURL').value;
 
+            // Basic validation
+            if (!title || !author || !isbn) {
+                alert('Please fill in all required fields (Title, Author, ISBN).');
+                return;
+            }
+            if (availableCopies > totalCopies) {
+                alert('Available copies cannot exceed total copies.');
+                return;
+            }
+
             try {
-                const response = await fetch(`${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/books/${bookId}`, {
-                    method: 'PUT',
+                const url = `${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/graphql`;
+                const query = `
+                    mutation {
+                        updateBook(
+                            id: ${bookId}, 
+                            title: "${title.replace(/"/g, '\\"')}", 
+                            author: "${author.replace(/"/g, '')}", 
+                            isbn "${isbn.replace(/"/g, '')}", 
+                            totalCopies: ${totalCopies}, 
+                            availableCopies: ${availableCopies}, 
+                            coverUrl: "${coverUrl.replace(/"/g, '')}"
+                        ) {
+                            id
+                            title
+                            author
+                            isbn
+                            totalCopies
+                            availableCopies
+                            coverUrl
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        title,
-                        author,
-                        isbn,
-                        total_copies: totalCopies,
-                        available_copies: availableCopies,
-                        cover_url: coverUrl
-                    })
+                    body: JSON.stringify({ query })
                 });
-                if (!response.ok) throw new Error('Failed to update book');
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Failed to update book: ${errorData.errors ? errorData.errors[0].message : response.statusText}`);
+                }
                 closeModal('editBookModal');
+                alert('Book updated successfully');
                 fetchBooks();
             } catch (error) {
                 console.error('Error updating book:', error);
-                alert('Failed to update book. Please check the backend server.');
+                alert('Failed to update book. Please check the backend server and ensure all fields are valid.');
             }
         }
 
@@ -488,27 +578,52 @@
             if (!bookId) return;
 
             try {
-                const response = await fetch(`${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/books/${bookId}`, {
-                    method: 'DELETE'
+                const url = `${window.env.URL}:${window.env.BOOK_SERVICE_PORT}/graphql`;
+                const query = `
+                    mutation {
+                        deleteBook(id: ${bookId})
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
                 });
                 if (!response.ok) throw new Error('Failed to delete book');
                 fetchBooks();
             } catch (error) {
                 console.error('Error deleting book:', error);
-                alert('Failed to delete book. Please check the backend server.');
+                alert('Failed to delete book. Please check the server.');
             }
         }
 
         async function fetchLoans() {
             try {
-                console.log(`Fetching loans from ${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/loans...`);
-                const response = await fetch(`${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/loans`);
+                console.log(`Fetching loans from ${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/graphql...`);
+                const url = `${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/graphql`;
+                const query = `
+                    query {
+                        loans {
+                            id
+                            userId
+                            bookId
+                            loanDate
+                            returnDate
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
                 console.log('Response status:', response.status);
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Failed to fetch loans: ${errorData.error || response.statusText}`);
+                    throw new Error(`Failed to fetch loans: ${errorData.errors ? errorData.errors[0].message : response.statusText}`);
                 }
-                const loans = await response.json();
+                const data = await response.json();
+                const loans = data.data.loans;
                 console.log('Fetched loans:', loans);
 
                 const loanTableBody = document.getElementById('loanTableBody');
@@ -523,10 +638,10 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${loan.id || 'N/A'}</td>
-                        <td>${loan.user_id || 'N/A'}</td>
-                        <td>${loan.book_id || 'N/A'}</td>
-                        <td>${loan.loan_date || 'N/A'}</td>
-                        <td>${loan.return_date || 'Not returned'}</td>
+                        <td>${loan.userId || 'N/A'}</td>
+                        <td>${loan.bookId || 'N/A'}</td>
+                        <td>${loan.loanDate || 'N/A'}</td>
+                        <td>${loan.returnDate || 'Not returned'}</td>
                     `;
                     loanTableBody.appendChild(row);
                 });
@@ -548,21 +663,33 @@
             }
 
             try {
-                console.log('Sending POST request to add loan:', { user_id: userId, book_id: bookId, loan_date: loanDate, return_date: returnDate });
-                const response = await fetch(`${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/loans`, {
+                console.log('Sending POST request to add loan:', { userId: userId, bookId: bookId, loanDate: loanDate, returnDate: returnDate });
+                const url = `${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/graphql`;
+                const query = `
+                    mutation {
+                        createLoan(userId: ${userId}, bookId: ${bookId}, loanDate: "${loanDate}", returnDate: ${returnDate ? `"${returnDate}"` : null}) {
+                            id
+                            userId
+                            bookId
+                            loanDate
+                            returnDate
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, book_id: bookId, loan_date: loanDate, return_date: returnDate })
+                    body: JSON.stringify({ query })
                 });
                 console.log('Response status:', response.status);
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Failed to add loan: ${errorData.error || response.statusText}`);
+                    throw new Error(`Failed to add loan: ${errorData.errors ? errorData.errors[0].message : response.statusText}`);
                 }
                 closeModal('addLoanModal');
                 alert('Loan added successfully');
                 fetchLoans();
-                fetchBooks(); // Refresh daftar buku untuk memperbarui available_copies
+                fetchBooks(); // Refresh daftar buku untuk memperbarui availableCopies
                 fetchUsers(); // Refresh daftar user untuk memperbarui loan history
             } catch (error) {
                 console.error('Error adding loan:', error.message);
@@ -576,18 +703,35 @@
 
             try {
                 console.log(`Fetching loan with ID: ${loanId}`);
-                const response = await fetch(`${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/loans/${loanId}`);
+                const url = `${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/graphql`;
+                const query = `
+                    query {
+                        loan(id: ${loanId}) {
+                            id
+                            userId
+                            bookId
+                            loanDate
+                            returnDate
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Failed to fetch loan: ${errorData.error || response.statusText}`);
+                    throw new Error(`Failed to fetch loan: ${errorData.errors ? errorData.errors[0].message : response.statusText}`);
                 }
-                const loan = await response.json();
+                const data = await response.json();
+                const loan = data.data.loan;
 
                 document.getElementById('editLoanId').value = loan.id;
-                document.getElementById('editLoanUserId').value = loan.user_id;
-                document.getElementById('editLoanBookId').value = loan.book_id;
-                document.getElementById('editLoanDate').value = loan.loan_date ? loan.loan_date.split('T')[0] : '';
-                document.getElementById('editLoanReturnDate').value = loan.return_date ? loan.return_date.split('T')[0] : '';
+                document.getElementById('editLoanUserId').value = loan.userId;
+                document.getElementById('editLoanBookId').value = loan.bookId;
+                document.getElementById('editLoanDate').value = loan.loanDate ? loan.loanDate.split('T')[0] : '';
+                document.getElementById('editLoanReturnDate').value = loan.returnDate ? loan.returnDate.split('T')[0] : '';
 
                 openModal('editLoanModal');
             } catch (error) {
@@ -605,19 +749,26 @@
 
             try {
                 console.log(`Saving changes for loan ID: ${loanId}`);
-                const response = await fetch(`${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/loans/${loanId}`, {
-                    method: 'PUT',
+                const url = `${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/graphql`;
+                const query = `
+                    mutation {
+                        updateLoan(id: ${loanId}, userId: ${userId}, bookId: ${bookId}, loanDate: "${loanDate}", returnDate: ${returnDate ? `"${returnDate}"` : null}) {
+                            id
+                            userId
+                            bookId
+                            loanDate
+                            returnDate
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: userId,
-                        book_id: bookId,
-                        loan_date: loanDate,
-                        return_date: returnDate
-                    })
+                    body: JSON.stringify({ query })
                 });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Failed to update loan: ${errorData.error || response.statusText}`);
+                    throw new Error(`Failed to update loan: ${errorData.errors ? errorData.errors[0].message : response.statusText}`);
                 }
                 closeModal('editLoanModal');
                 alert('Loan updated successfully');
@@ -635,16 +786,24 @@
 
             try {
                 console.log(`Deleting loan with ID: ${loanId}`);
-                const response = await fetch(`${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/loans/${loanId}`, {
-                    method: 'DELETE'
+                const url = `${window.env.URL}:${window.env.LOAN_SERVICE_PORT}/graphql`;
+                const query = `
+                    mutation {
+                        deleteLoan(id: ${loanId})
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
                 });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Failed to delete loan: ${errorData.error || response.statusText}`);
+                    throw new Error(`Failed to delete loan: ${errorData.errors ? errorData.errors[0].message : response.statusText}`);
                 }
                 alert('Loan deleted successfully');
                 fetchLoans();
-                fetchBooks(); // Refresh daftar buku untuk memperbarui available_copies
+                fetchBooks(); // Refresh daftar buku untuk memperbarui availableCopies
                 fetchUsers(); // Refresh daftar user untuk memperbarui loan history
             } catch (error) {
                 console.error('Error deleting loan:', error.message);
@@ -654,14 +813,30 @@
 
         async function fetchUsers() {
             try {
-                console.log(`Fetching users from ${window.env.URL}:${window.env.USER_SERVICE_PORT}/users...`);
-                const response = await fetch(`${window.env.URL}:${window.env.USER_SERVICE_PORT}/users`);
+                console.log(`Fetching users from ${window.env.URL}:${window.env.USER_SERVICE_PORT}/graphql...`);
+                const url = `${window.env.URL}:${window.env.USER_SERVICE_PORT}/graphql`;
+                const query = `
+                    query {
+                        users {
+                            id
+                            name
+                            email
+                            loanHistory
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
                 console.log('Response status:', response.status);
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Failed to fetch users: ${errorData.error || response.statusText}`);
+                    throw new Error(`Failed to fetch users: ${errorData.errors ? errorData.errors[0].message : response.statusText}`);
                 }
-                const users = await response.json();
+                const data = await response.json();
+                const users = data.data.users;
                 console.log('Fetched users:', users);
 
                 const userTableBody = document.getElementById('userTableBody');
@@ -678,13 +853,13 @@
                         <td>${user.id || 'N/A'}</td>
                         <td>${user.name || 'N/A'}</td>
                         <td>${user.email || 'N/A'}</td>
-                        <td>${user.loan_history || 0} loans</td>
+                        <td>${user.loanHistory || 0} loans</td>
                     `;
                     userTableBody.appendChild(row);
                 });
             } catch (error) {
                 console.error('Error fetching users:', error.message);
-                alert(`Failed to fetch users. Please check the backend server. Error: ${error.message}`);
+                alert(`Failed to fetch users. Please check the server. Error: ${error.message}`);
             }
         }
 
@@ -694,21 +869,32 @@
 
             try {
                 console.log('Sending POST request to add user:', { name, email });
-                const response = await fetch(`${window.env.URL}:${window.env.USER_SERVICE_PORT}/users`, {
+                const url = `${window.env.URL}:${window.env.USER_SERVICE_PORT}/graphql`;
+                const query = `
+                    mutation {
+                        createUser(name: "${name}", email: "${email}") {
+                            id
+                            name
+                            email
+                            loanHistory
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email })
+                    body: JSON.stringify({ query })
                 });
                 console.log('Response status:', response.status);
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Failed to add user: ${errorData.error || response.statusText}`);
+                    throw new Error(`Failed to add user: ${errorData.errors ? errorData.errors[0].message : response.statusText}`);
                 }
                 closeModal('addUserModal');
                 fetchUsers();
             } catch (error) {
                 console.error('Error adding user:', error.message);
-                alert(`Failed to add user. Please check the backend server. Error: ${error.message}`);
+                alert(`Failed to add user. Please check the server. Error: ${error.message}`);
             }
         }
 
@@ -718,12 +904,28 @@
 
             try {
                 console.log(`Fetching user with ID: ${userId}`);
-                const response = await fetch(`${window.env.URL}:${window.env.USER_SERVICE_PORT}/users/${userId}`);
+                const url = `${window.env.URL}:${window.env.USER_SERVICE_PORT}/graphql`;
+                const query = `
+                    query {
+                        user(id: ${userId}) {
+                            id
+                            name
+                            email
+                            loanHistory
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Failed to fetch user: ${errorData.error || response.statusText}`);
+                    throw new Error(`Failed to fetch user: ${errorData.errors ? errorData.errors[0].message : response.statusText}`);
                 }
-                const user = await response.json();
+                const data = await response.json();
+                const user = data.data.user;
 
                 document.getElementById('editUserId').value = user.id;
                 document.getElementById('editUserName').value = user.name;
@@ -743,14 +945,25 @@
 
             try {
                 console.log(`Saving changes for user ID: ${userId}`);
-                const response = await fetch(`${window.env.URL}:${window.env.USER_SERVICE_PORT}/users/${userId}`, {
-                    method: 'PUT',
+                const url = `${window.env.URL}:${window.env.USER_SERVICE_PORT}/graphql`;
+                const query = `
+                    mutation {
+                        updateUser(id: ${userId}, name: "${name}", email: "${email}") {
+                            id
+                            name
+                            email
+                            loanHistory
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email })
+                    body: JSON.stringify({ query })
                 });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Failed to update user: ${errorData.error || response.statusText}`);
+                    throw new Error(`Failed to update user: ${errorData.errors[0].message}`);
                 }
                 closeModal('editUserModal');
                 alert('User updated successfully');
@@ -767,18 +980,374 @@
 
             try {
                 console.log(`Deleting user with ID: ${userId}`);
-                const response = await fetch(`${window.env.URL}:${window.env.USER_SERVICE_PORT}/users/${userId}`, {
-                    method: 'DELETE'
+                const url = `${window.env.URL}:${window.env.USER_SERVICE_PORT}/graphql`;
+                const query = `
+                    mutation {
+                        deleteUser(id: ${userId})
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
                 });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Failed to delete user: ${errorData.error || response.statusText}`);
+                    throw new Error(`Failed to delete user: ${errorData.errors ? errorData.errors[0].message : response.statusText}`);
                 }
                 alert('User deleted successfully');
                 fetchUsers();
             } catch (error) {
                 console.error('Error deleting user:', error.message);
                 alert(`Failed to delete user. Error: ${error.message}`);
+            }
+        }
+
+        // Predict JS
+        async function fetchLoanData() {
+            try {
+                const url = `${window.env.URL || 'http://localhost'}:${window.env.PREDICT_SERVICE_PORT || '5003'}/graphql`;
+                console.log('Fetching loan data from:', url);
+                const query = `
+                    query {
+                        loansTotal {
+                            id
+                            userId
+                            bookId
+                            loanDate
+                            returnDate
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to fetch loan data: ${response.statusText} (${response.status}). Response: ${errorText}`);
+                }
+
+                const responseData = await response.json();
+                console.log('Received data:', responseData);
+
+                if (responseData.errors) {
+                    throw new Error(`GraphQL error: ${responseData.errors[0].message}`);
+                }
+
+                const loanDataTableBody = document.getElementById('loanDataTableBody');
+                loanDataTableBody.innerHTML = '';
+
+                if (responseData.data && responseData.data.loansTotal && Array.isArray(responseData.data.loansTotal)) {
+                    const loans = responseData.data.loansTotal;
+
+                    // Aggregate data by month and bookId
+                    const aggregatedData = loans.reduce((acc, loan) => {
+                        if (!loan.loanDate) return acc;
+                        const date = new Date(loan.loanDate);
+                        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                        const key = `${monthKey}-${loan.bookId}`;
+                        if (!acc[key]) {
+                            acc[key] = {
+                                date: monthKey,
+                                bookId: loan.bookId,
+                                borrowed_count: 0
+                            };
+                        }
+                        acc[key].borrowed_count += 1;
+                        return acc;
+                    }, {});
+
+                    const dataArray = Object.values(aggregatedData);
+
+                    // Update table header
+                    const tableHeader = document.querySelector('#loanDataTable thead tr');
+                    if (tableHeader && tableHeader.children.length === 2) {
+                        tableHeader.innerHTML = `
+                            <th>Month</th>
+                            <th>Book ID</th>
+                            <th>Total Loans</th>
+                        `;
+                    }
+
+                    // Store data globally for pagination
+                    window.loanData = dataArray;
+
+                    // Create pagination if needed
+                    if (dataArray.length > 10) {
+                        createPagination(dataArray.length, 'loanPagination', displayLoanPage);
+                    } else {
+                        const paginationContainer = document.getElementById('loanPagination');
+                        if (paginationContainer) {
+                            paginationContainer.innerHTML = '';
+                        }
+                        displayLoanData(dataArray, 0, 10);
+                    }
+                } else {
+                    loanDataTableBody.innerHTML = '<tr><td colspan="3">No loan data available or invalid format</td></tr>';
+                    console.warn('Unexpected data format:', responseData);
+                }
+            } catch (error) {
+                console.error('Error fetching loan data:', error.message);
+                alert(`Failed to fetch loan data. Please ensure the predict service is running on ${window.env.URL || 'http://localhost'}:${window.env.PREDICT_SERVICE_PORT || '5003'}. Error: ${error.message}`);
+            }
+        }
+
+        function displayLoanPage(page) {
+            const startIndex = (page - 1) * 10;
+            const endIndex = startIndex + 10;
+            displayLoanData(window.loanData, startIndex, endIndex);
+        }
+
+        function displayLoanData(data, startIndex, endIndex) {
+            const loanDataTableBody = document.getElementById('loanDataTableBody');
+            loanDataTableBody.innerHTML = '';
+
+            const pageData = data.slice(startIndex, endIndex);
+
+            if (pageData.length === 0) {
+                loanDataTableBody.innerHTML = '<tr><td colspan="3">No data available for this page</td></tr>';
+                return;
+            }
+
+            pageData.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${entry.date || 'N/A'}</td>
+                    <td>${entry.bookId || 'N/A'}</td>
+                    <td>${entry.borrowed_count || 0}</td>
+                `;
+                loanDataTableBody.appendChild(row);
+            });
+        }
+
+        function createPagination(totalItems, containerId, callback) {
+            const totalPages = Math.ceil(totalItems / 10);
+            let paginationContainer = document.getElementById(containerId);
+            if (!paginationContainer) {
+                const tableContainer = document.getElementById('loanDataTable').parentNode;
+                paginationContainer = document.createElement('div');
+                paginationContainer.id = containerId;
+                paginationContainer.className = 'pagination';
+                tableContainer.appendChild(paginationContainer);
+            }
+
+            function updatePaginationUI(currentPage) {
+                paginationContainer.innerHTML = '';
+
+                const prevButton = document.createElement('button');
+                prevButton.textContent = 'Previous';
+                prevButton.className = 'pagination-btn';
+                prevButton.disabled = currentPage === 1;
+                prevButton.onclick = function () {
+                    if (currentPage > 1) {
+                        changePage(currentPage - 1);
+                    }
+                };
+                paginationContainer.appendChild(prevButton);
+
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, startPage + 4);
+                if (endPage - startPage < 4 && totalPages > 5) {
+                    startPage = Math.max(1, endPage - 4);
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                    const button = document.createElement('button');
+                    button.textContent = i;
+                    button.className = 'pagination-btn' + (i === currentPage ? ' active' : '');
+                    button.onclick = function () {
+                        changePage(i);
+                    };
+                    paginationContainer.appendChild(button);
+                }
+
+                const nextButton = document.createElement('button');
+                nextButton.textContent = 'Next';
+                nextButton.className = 'pagination-btn';
+                nextButton.disabled = currentPage === totalPages;
+                nextButton.onclick = function () {
+                    if (currentPage < totalPages) {
+                        changePage(currentPage + 1);
+                    }
+                };
+                paginationContainer.appendChild(nextButton);
+            }
+
+            function changePage(page) {
+                paginationContainer.setAttribute('data-current-page', page);
+                updatePaginationUI(page);
+                callback(page);
+            }
+
+            paginationContainer.setAttribute('data-current-page', 1);
+            updatePaginationUI(1);
+            callback(1);
+        }
+
+        async function fetchPrediction() {
+            try {
+                const predictDate = document.getElementById('predictDate').value;
+                const isPeakSeason = document.getElementById('isPeakSeason').checked ? 1 : 0;
+                const isLowSeason = document.getElementById('isLowSeason').checked ? 1 : 0;
+                const modelNo = parseInt(document.getElementById('modelNo').value);
+
+                console.log('Sending prediction request with data:', {
+                    date: predictDate,
+                    is_peak_season: isPeakSeason,
+                    is_low_season: isLowSeason,
+                    model_no: modelNo
+                });
+
+                const url = `${window.env.URL || 'http://localhost'}:${window.env.PREDICT_SERVICE_PORT || '5003'}/graphql`;
+                const query = `
+                    query {
+                        predictions(modelNo: ${modelNo}, date: "${predictDate}", isPeakSeason: ${isPeakSeason}, isLowSeason: ${isLowSeason}) {
+                            modelNo
+                            prediction
+                            seasonType
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+                console.log('Response status:', response.status);
+
+                if (!response.ok) throw new Error(`Failed to fetch prediction: ${response.statusText}`);
+                const responseData = await response.json();
+                console.log('Prediction data received:', responseData);
+
+                if (responseData.errors) throw new Error(responseData.errors[0].message);
+
+                if (responseData.data && responseData.data.predictions && responseData.data.predictions.length > 0) {
+                    const predictTableBody = document.getElementById('predictTableBody');
+                    predictTableBody.innerHTML = '';
+                    const prediction = responseData.data.predictions[0];
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${predictDate}</td>
+                        <td>${prediction.prediction}</td>
+                    `;
+                    predictTableBody.appendChild(row);
+                } else {
+                    throw new Error('No prediction data returned');
+                }
+            } catch (error) {
+                console.error('Error fetching prediction:', error);
+                alert('Failed to get prediction. Please check the server.');
+            }
+        }
+
+        async function fetchModelErrors() {
+            try {
+                console.log('Fetching model error metrics...');
+                const url = `${window.env.URL || 'http://localhost'}:${window.env.PREDICT_SERVICE_PORT || '5003'}/graphql`;
+                const query = `
+                    query {
+                        evaluate
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+                console.log('Response status:', response.status);
+
+                if (!response.ok) throw new Error(`Failed to fetch model error metrics: ${response.statusText}`);
+                const responseData = await response.json();
+                console.log('Model error metrics received:', responseData);
+
+                if (responseData.errors) throw new Error(responseData.errors[0].message);
+
+                if (responseData.data && responseData.data.evaluate && Array.isArray(responseData.data.evaluate)) {
+                    const errorTableBody = document.getElementById('errorTableBody');
+                    errorTableBody.innerHTML = '';
+
+                    responseData.data.evaluate.forEach((metricsJson, index) => {
+                        const metrics = JSON.parse(metricsJson);
+                        const modelNumber = index + 1;
+                        const row = document.createElement('tr');
+                        if (metrics.error) {
+                            row.innerHTML = `
+                                <td>Model ${modelNumber}</td>
+                                <td colspan="4">Error: ${metrics.error}</td>
+                            `;
+                        } else {
+                            row.innerHTML = `
+                                <td>Model ${modelNumber}</td>
+                                <td>${typeof metrics.mse === 'number' ? metrics.mse.toFixed(4) : metrics.mse}</td>
+                                <td>${typeof metrics.rmse === 'number' ? metrics.rmse.toFixed(4) : metrics.rmse}</td>
+                                <td>${typeof metrics.mae === 'number' ? metrics.mae.toFixed(4) : metrics.mae}</td>
+                                <td>${typeof metrics.r2_score === 'number' ? metrics.r2_score.toFixed(4) : metrics.r2_score}</td>
+                            `;
+                        }
+                        errorTableBody.appendChild(row);
+                    });
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            } catch (error) {
+                console.error('Error fetching model error metrics:', error);
+                alert('Failed to fetch model error metrics. Try again.');
+            }
+        }
+
+        async function askAI() {
+            try {
+                const aiPrompt = document.getElementById('aiPrompt').value.trim();
+
+                if (!aiPrompt) {
+                    alert('Please enter a question for the AI.');
+                    return;
+                }
+
+                document.getElementById('aiLoading').style.display = 'block';
+                document.getElementById('aiResponseContainer').style.display = 'none';
+
+                console.log('Sending AI analysis request with prompt:', aiPrompt);
+
+                const url = `${window.env.URL || 'http://localhost'}:${window.env.PREDICT_SERVICE_PORT || '5003'}/graphql`;
+                const query = `
+                    mutation {
+                        predictAnalyze(prompt: "${aiPrompt.replace(/"/g, '\\"')}") {
+                            success
+                            analysis
+                        }
+                    }
+                `;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query })
+                });
+                console.log('Response status:', response.status);
+
+                if (!response.ok) throw new Error(`Failed to get AI analysis: ${response.statusText}`);
+                const responseData = await response.json();
+                console.log('AI analysis received:', responseData);
+
+                document.getElementById('aiLoading').style.display = 'none';
+
+                if (responseData.errors) throw new Error(responseData.errors[0].message);
+
+                if (responseData.data && responseData.data.predictAnalyze && responseData.data.predictAnalyze.success) {
+                    const aiResponseContainer = document.getElementById('aiResponseContainer');
+                    const aiResponseText = document.getElementById('aiResponseText');
+                    aiResponseText.textContent = responseData.data.predictAnalyze.analysis;
+                    aiResponseContainer.style.display = 'block';
+                } else {
+                    throw new Error('Invalid response format');
+                }
+            } catch (error) {
+                document.getElementById('aiLoading').style.display = 'none';
+                console.error('Error getting AI analysis:', error);
+                alert('Failed to get AI analysis. Please try again.');
             }
         }
 

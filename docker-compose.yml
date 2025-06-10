@@ -1,18 +1,16 @@
 version: '3.8'
 
 services:
-  mysql:
+  mysql_db:
     image: mysql:8.0
     container_name: mysql_db
     environment:
-      MYSQL_USER: salik
-      MYSQL_PASSWORD: ""
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
     volumes:
       - mysql_data:/var/lib/mysql
       - ./database_setup.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "3308:3306"
+      - "3306:3306"
     networks:
       - app-network
     healthcheck:
@@ -22,39 +20,37 @@ services:
       retries: 5
 
   book-service:
-    image: salikarth/book-service:latest  # Gunakan image dari Docker Hub
+    image: salikarth/book-service:latest
     container_name: book_service
     environment:
       - MYSQL_HOST=mysql_db
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=""
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
       - MYSQL_PORT=3306
       - MYSQL_DB_BOOK=book_management_uts_db
       - BOOK_SERVICE_PORT=5000
-      - URL=http://localhost
     ports:
       - "5000:5000"
     depends_on:
-      mysql:
+      mysql_db:
         condition: service_healthy
     networks:
       - app-network
 
   loan-service:
-    image: salikarth/loan-service:latest  # Gunakan image dari Docker Hub
+    image: salikarth/loan-service:latest
     container_name: loan_service
     environment:
       - MYSQL_HOST=mysql_db
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=""
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
       - MYSQL_PORT=3306
       - MYSQL_DB_LOAN=loan_management_uts_db
       - LOAN_SERVICE_PORT=5001
-      - URL=http://localhost
     ports:
       - "5001:5001"
     depends_on:
-      mysql:
+      mysql_db:
         condition: service_healthy
       book-service:
         condition: service_started
@@ -62,20 +58,19 @@ services:
       - app-network
 
   user-service:
-    image: salikarth/user-service:latest  # Gunakan image dari Docker Hub
+    image: salikarth/user-service:latest
     container_name: user_service
     environment:
       - MYSQL_HOST=mysql_db
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=""
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
       - MYSQL_PORT=3306
       - MYSQL_DB_USER=user_management_uts_db
       - USER_SERVICE_PORT=5002
-      - URL=http://localhost
     ports:
       - "5002:5002"
     depends_on:
-      mysql:
+      mysql_db:
         condition: service_healthy
       loan-service:
         condition: service_started
@@ -83,26 +78,26 @@ services:
       - app-network
 
   predict-service:
-    image: salikarth/predict-service:latest  # Gunakan image dari Docker Hub
+    image: salikarth/predict-service:latest
     container_name: predict_service
     environment:
       - MYSQL_HOST=mysql_db
-      - MYSQL_USER=root
-      - MYSQL_PASSWORD=""
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
       - MYSQL_PORT=3306
+      - MYSQL_DB_LOAN=loan_management_uts_db
       - PREDICT_SERVICE_PORT=5003
       - GEMINI_API_KEY=${GEMINI_API_KEY}
-      - URL=http://localhost
     ports:
       - "5003:5003"
     depends_on:
-      mysql:
+      mysql_db:
         condition: service_healthy
     networks:
       - app-network
 
   frontend:
-    image: salikarth/frontend:latest  # Gunakan image dari Docker Hub
+    image: salikarth/frontend:latest
     container_name: frontend
     ports:
       - "3000:80"
